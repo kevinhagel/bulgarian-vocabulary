@@ -93,7 +93,6 @@ public class LlmOutputValidator {
         }
 
         // Validate each inflection entry
-        Set<String> seenTexts = new HashSet<>();
         for (InflectionSet.InflectionEntry entry : set.inflections()) {
             if (entry.text() == null || entry.text().isBlank()) {
                 throw new LlmValidationException("Inflection text is blank");
@@ -103,10 +102,8 @@ public class LlmOutputValidator {
                 throw new LlmValidationException("Inflection does not contain Cyrillic characters: " + entry.text());
             }
 
-            // Check for duplicates
-            if (!seenTexts.add(entry.text())) {
-                throw new LlmValidationException("Duplicate inflection text found: " + entry.text());
-            }
+            // Note: Duplicate inflection texts are allowed in Bulgarian
+            // (same form can appear in multiple grammatical contexts)
         }
 
         // Validate minimum inflection count by part of speech
