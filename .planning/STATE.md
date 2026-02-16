@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 5 of 8 (Frontend Foundation and Vocabulary UI)
-Plan: 3 of 4 (complete)
-Status: CRUD forms with React Hook Form + Zod validation and TanStack Query mutations
-Last activity: 2026-02-16 — Completed 05-03: Vocabulary CRUD forms, modals, validation, mutations
+Phase: 6 of 8 (Flashcards & Basic Study) - Ready to plan
+Plan: Phase 5 complete, Phase 6 not started
+Status: Frontend vocabulary UI complete, background processing optimization deferred to Phase 6
+Last activity: 2026-02-16 — Completed Phase 5: Frontend Foundation & Vocabulary UI (4/4 plans)
 
-Progress: [██████████] 62.5%
+Progress: [████████████] 62.5%
 
 ## Performance Metrics
 

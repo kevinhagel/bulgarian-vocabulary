@@ -191,7 +191,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 2. LLM Integration | 2/2 | ✓ Complete | 2026-02-16 |
 | 3. TTS Audio Generation | 2/2 | ✓ Complete | 2026-02-16 |
 | 4. Core Vocabulary Management | 2/2 | ✓ Complete | 2026-02-16 |
-| 5. Frontend Foundation & Vocabulary UI | 0/4 | Not started | - |
+| 5. Frontend Foundation & Vocabulary UI | 4/4 | ✓ Complete | 2026-02-16 |
 | 6. Flashcards & Basic Study | 0/TBD | Not started | - |
 | 7. Word Lists & Organization | 0/TBD | Not started | - |
 | 8. Advanced SRS & Polish | 0/TBD | Not started | - |
