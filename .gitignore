@@ -1,0 +1,29 @@
+# Build outputs
+target/
+dist/
+build/
+*.log
+
+# Dependencies
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vite
+.vite/
+node_modules/.vite/
+
+# Audio storage (large files)
+storage/

@@ -1,0 +1,33 @@
+spring:
+  docker:
+    compose:
+      enabled: false  # Docker runs on Mac Studio, not auto-managed
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        enabled: true
+        options:
+          model: todorov/bggpt:9B-IT-v1.0.Q4_K_M
+          temperature: 0.3
+
+# Dev-friendly circuit breaker: shorter wait, smaller window
+resilience4j:
+  circuitbreaker:
+    instances:
+      ollama:
+        wait-duration-in-open-state: 10s
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+
+# Audio storage on external SSD (Mac Studio - T9 has 3.6TB vs T7s 1.8TB)
+audio:
+  storage:
+    path: ${AUDIO_STORAGE_PATH:/Volumes/T9-NorthStar/bulgarian-vocab/audio}

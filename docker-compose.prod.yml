@@ -1,0 +1,48 @@
+version: '3.8'
+
+# Production overrides for Mac Studio deployment
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  postgres:
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Strong password from .env.production
+    # SECURITY: Bind to localhost only - access from MacBook via SSH tunnel
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    # Production-grade settings
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - wal_buffers=16MB
+      - -c
+      - default_statistics_target=100
+
+  pgadmin:
+    restart: unless-stopped
+    environment:
+      PGADMIN_CONFIG_SERVER_MODE: 'True'  # Enable login for production
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True'
+    # SECURITY: Bind to localhost only - access from MacBook via SSH tunnel
+    ports:
+      - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
+
+  valkey:
+    restart: unless-stopped
+    # SECURITY: Bind to localhost only - Spring Boot app runs on same host
+    ports:
+      - "127.0.0.1:${VALKEY_PORT:-6379}:6379"
+    volumes:
+      - ./config/valkey-prod.conf:/usr/local/etc/valkey/valkey.conf:ro
+      - valkey-data:/data

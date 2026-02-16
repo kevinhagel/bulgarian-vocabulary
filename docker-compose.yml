@@ -1,0 +1,113 @@
+services:
+  # PostgreSQL with PGroonga for Bulgarian full-text search
+  postgres:
+    image: groonga/pgroonga:latest
+    container_name: bulgarian-vocab-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bulgarian_vocab}
+      POSTGRES_USER: ${POSTGRES_USER:-vocab_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vocab_pass}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - wal_buffers=16MB
+      - -c
+      - default_statistics_target=100
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vocab_user} -d ${POSTGRES_DB:-bulgarian_vocab}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bulgarian-vocab
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bulgarian-vocab-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@bulgarian-vocab.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'True'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - bulgarian-vocab
+
+  # Valkey (Redis-compatible) for LLM response caching
+  valkey:
+    image: valkey/valkey:7.2
+    container_name: bulgarian-vocab-valkey
+    restart: unless-stopped
+    ports:
+      - "${VALKEY_PORT:-6379}:6379"
+    volumes:
+      - ./config/valkey-prod.conf:/usr/local/etc/valkey/valkey.conf:ro
+      - valkey-data:/data
+    command: valkey-server /usr/local/etc/valkey/valkey.conf
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - bulgarian-vocab
+
+  # Redis Commander - Valkey Administration Interface
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: bulgarian-vocab-redis-commander
+    hostname: redis-commander
+    restart: unless-stopped
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8082}:8081"
+    environment:
+      - REDIS_HOSTS=valkey:valkey:${VALKEY_PORT:-6379}:0
+      - HTTP_USER=${REDIS_COMMANDER_USER:-admin}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD:-admin123}
+    depends_on:
+      valkey:
+        condition: service_healthy
+    networks:
+      - bulgarian-vocab
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+  valkey-data:
+
+networks:
+  bulgarian-vocab:
+    driver: bridge

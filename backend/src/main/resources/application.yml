@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: bulgarian-vocabulary
+
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bulgarian_vocab
+    username: vocab_user
+    password: ${POSTGRES_PASSWORD:vocab_pass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  docker:
+    compose:
+      enabled: false  # Infrastructure managed externally via docker-compose.yml
+
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: todorov/bggpt:9B-IT-v1.0.Q4_K_M
+          temperature: 0.3
+          num-ctx: 2048
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 86400000  # 24 hours in milliseconds
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      ollama:
+        sliding-window-size: 10
+        sliding-window-type: COUNT_BASED
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5
+        register-health-indicator: true
+
+# Audio/TTS Configuration
+audio:
+  storage:
+    path: ${AUDIO_STORAGE_PATH:./storage/audio}
+  cleanup:
+    max-age-days: 30
+
+tts:
+  bulgarian:
+    voice:
+      female: bg-BG-KalinaNeural
+      male: bg-BG-BorislavNeural
+      default: ${tts.bulgarian.voice.female}

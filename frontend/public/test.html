@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>UTF-8 Test</title>
+</head>
+<body>
+    <h1>Direct HTML Test</h1>
+    <p>Hardcoded: аз, без, две, девет</p>
+
+    <h2>JavaScript Test</h2>
+    <div id="test1"></div>
+
+    <h2>Fetch API Test</h2>
+    <div id="test2"></div>
+
+    <script>
+        // Test 1: Direct assignment
+        document.getElementById('test1').textContent = 'JavaScript: аз, без, две, девет';
+
+        // Test 2: Fetch from API
+        fetch('/api/vocabulary')
+            .then(r => r.json())
+            .then(data => {
+                const words = data.content.slice(0, 5).map(item =>
+                    item.text + ' (' + item.translation + ')'
+                ).join(', ');
+                document.getElementById('test2').textContent = 'From API: ' + words;
+
+                // Log to console for debugging
+                console.log('API data:', data.content[1]);
+                console.log('Text value:', data.content[1].text);
+                console.log('Char codes:', [...data.content[1].text].map(c => '0x' + c.charCodeAt(0).toString(16)));
+            });
+    </script>
+</body>
+</html>
