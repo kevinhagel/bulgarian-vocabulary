@@ -1,5 +1,6 @@
 import { AudioPlayButton } from '@/components/audio/AudioPlayButton';
 import { InflectionsTable } from './InflectionsTable';
+import { LemmaSrsInfo } from './LemmaSrsInfo';
 import { useVocabularyDetail } from '../api/useVocabularyDetail';
 import { useVocabularyUIStore } from '../stores/useVocabularyUIStore';
 import type { PartOfSpeech, DifficultyLevel, ReviewStatus, Source } from '@/types';
@@ -248,6 +249,9 @@ export function VocabularyDetail({ lemmaId, onBack }: VocabularyDetailProps) {
           </h2>
           <InflectionsTable inflections={lemma.inflections} />
         </div>
+
+        {/* SRS study statistics for user-entered lemmas */}
+        {lemma.source === 'USER_ENTERED' && <LemmaSrsInfo lemmaId={lemma.id} />}
 
         {/* Action buttons */}
         <div className="flex gap-3 pt-6 border-t border-gray-200">

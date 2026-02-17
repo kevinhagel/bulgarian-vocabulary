@@ -73,4 +73,6 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
     // Batch load inflections for list of IDs (after pagination)
     @Query("SELECT DISTINCT l FROM Lemma l LEFT JOIN FETCH l.inflections WHERE l.id IN :ids")
     List<Lemma> findByIdInWithInflections(@Param("ids") List<Long> ids);
+
+    long countBySource(Source source);
 }

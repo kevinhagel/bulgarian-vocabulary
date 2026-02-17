@@ -13,6 +13,7 @@ import { useDueCount } from '@/features/study/api/useDueCount';
 import { StudyLauncher } from '@/features/study/components/StudyLauncher';
 import { FlashcardView } from '@/features/study/components/FlashcardView';
 import { SessionSummaryView } from '@/features/study/components/SessionSummaryView';
+import { ProgressDashboard } from '@/features/study/components/ProgressDashboard';
 
 type AppView = 'vocabulary' | 'study';
 
@@ -91,7 +92,7 @@ function App() {
       {/* Study view */}
       {appView === 'study' && (
         <>
-          {studyPhase === 'idle' && <StudyLauncher />}
+          {studyPhase === 'idle' && <><StudyLauncher /><ProgressDashboard /></>}
           {studyPhase === 'active' && <FlashcardView />}
           {studyPhase === 'summary' && <SessionSummaryView />}
         </>
