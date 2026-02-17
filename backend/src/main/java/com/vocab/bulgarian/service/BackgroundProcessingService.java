@@ -16,6 +16,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.Duration;
+
 /**
  * Service for background processing of vocabulary entries.
  * Orchestrates LLM pipeline: lemma detection → translation → inflections → metadata.
@@ -47,7 +50,8 @@ public class BackgroundProcessingService {
     @Async("llmTaskExecutor")
     @Transactional
     public void processLemma(Long lemmaId) {
-        logger.info("Starting background processing for lemma ID: {}", lemmaId);
+        Instant totalStart = Instant.now();
+        logger.info("Background processing started — lemma ID: {}", lemmaId);
 
         Lemma lemma = lemmaRepository.findById(lemmaId).orElse(null);
         if (lemma == null) {
@@ -60,40 +64,47 @@ public class BackgroundProcessingService {
             lemma.setProcessingStatus(ProcessingStatus.PROCESSING);
             lemmaRepository.save(lemma);
 
-            // Step 1: Process word form through LLM pipeline (lemma detection + inflections + metadata)
+            // Step 1: LLM pipeline (lemma detection + inflections + metadata)
             String userInput = lemma.getText();
-            logger.debug("Processing word form through LLM pipeline: {}", userInput);
+            Instant step1Start = Instant.now();
+            logger.info("[1/5] LLM pipeline starting for input: '{}'", userInput);
 
             LlmProcessingResult result = llmOrchestrationService.processNewWord(userInput)
-                .get(); // Block and wait for async result
+                .get();
 
-            // Step 2: Update lemma text to detected canonical form
+            logger.info("[1/5] LLM pipeline completed in {}ms", Duration.between(step1Start, Instant.now()).toMillis());
+
+            // Step 2: Canonical lemma
+            Instant step2Start = Instant.now();
             if (result.lemmaDetection() != null && result.lemmaDetection().lemma() != null) {
                 String detectedLemma = result.lemmaDetection().lemma();
+                logger.info("[2/5] Canonical lemma detected: '{}' → '{}' ({}ms)",
+                    userInput, detectedLemma, Duration.between(step2Start, Instant.now()).toMillis());
                 lemma.setText(detectedLemma);
-                logger.debug("Detected canonical lemma: {}", detectedLemma);
             } else {
                 throw new RuntimeException("Failed to detect lemma from input: " + userInput);
             }
 
-            // Step 3: Auto-translate if translation is missing
+            // Step 3: Translation
+            Instant step3Start = Instant.now();
             if (lemma.getTranslation() == null || lemma.getTranslation().isBlank()) {
-                logger.debug("Translating lemma to English");
                 String translation = translationService.translateWithFallback(lemma.getText());
                 if (translation != null) {
                     lemma.setTranslation(translation);
-                    logger.debug("Translation: {}", translation);
+                    logger.info("[3/5] Translation: '{}' ({}ms)",
+                        translation, Duration.between(step3Start, Instant.now()).toMillis());
                 } else {
-                    logger.warn("Translation failed, leaving translation null");
+                    logger.warn("[3/5] Translation failed for '{}' ({}ms)",
+                        lemma.getText(), Duration.between(step3Start, Instant.now()).toMillis());
                 }
+            } else {
+                logger.info("[3/5] Translation already present, skipping");
             }
 
-            // Step 4: Apply inflections
+            // Step 4: Inflections
+            Instant step4Start = Instant.now();
             if (result.inflections() != null && !result.inflections().inflections().isEmpty()) {
-                // Clear existing inflections
                 lemma.getInflections().clear();
-
-                // Add new inflections
                 for (var inflectionEntry : result.inflections().inflections()) {
                     Inflection inflection = new Inflection();
                     inflection.setForm(inflectionEntry.text());
@@ -101,12 +112,14 @@ public class BackgroundProcessingService {
                     inflection.setDifficultyLevel(inflectionEntry.difficultyLevel());
                     lemma.addInflection(inflection);
                 }
-                logger.debug("Added {} inflections", result.inflections().inflections().size());
+                logger.info("[4/5] {} inflections applied ({}ms)",
+                    result.inflections().inflections().size(), Duration.between(step4Start, Instant.now()).toMillis());
             } else {
-                logger.warn("No inflections generated for lemma: {}", lemma.getText());
+                logger.warn("[4/5] No inflections generated for lemma: '{}'", lemma.getText());
             }
 
-            // Step 5: Apply metadata (part of speech, category, difficulty)
+            // Step 5: Metadata
+            Instant step5Start = Instant.now();
             if (result.metadata() != null) {
                 LemmaMetadata metadata = result.metadata();
 
@@ -114,39 +127,40 @@ public class BackgroundProcessingService {
                     try {
                         PartOfSpeech pos = PartOfSpeech.valueOf(metadata.partOfSpeech().toUpperCase());
                         lemma.setPartOfSpeech(pos);
-                        logger.debug("Part of speech: {}", pos);
                     } catch (IllegalArgumentException e) {
-                        logger.warn("Invalid part of speech '{}', leaving null", metadata.partOfSpeech());
+                        logger.warn("[5/5] Invalid part of speech '{}', leaving null", metadata.partOfSpeech());
                     }
                 }
 
                 if (metadata.category() != null && !metadata.category().isBlank()) {
                     lemma.setCategory(metadata.category());
-                    logger.debug("Category: {}", metadata.category());
                 }
 
                 if (metadata.difficultyLevel() != null && !metadata.difficultyLevel().isBlank()) {
                     try {
                         DifficultyLevel difficulty = DifficultyLevel.valueOf(metadata.difficultyLevel().toUpperCase());
                         lemma.setDifficultyLevel(difficulty);
-                        logger.debug("Difficulty level: {}", difficulty);
                     } catch (IllegalArgumentException e) {
-                        logger.warn("Invalid difficulty level '{}', leaving null", metadata.difficultyLevel());
+                        logger.warn("[5/5] Invalid difficulty level '{}', leaving null", metadata.difficultyLevel());
                     }
                 }
+                logger.info("[5/5] Metadata applied — POS: {}, category: {}, difficulty: {} ({}ms)",
+                    lemma.getPartOfSpeech(), lemma.getCategory(), lemma.getDifficultyLevel(),
+                    Duration.between(step5Start, Instant.now()).toMillis());
             }
 
-            // Step 6: Mark as completed
             lemma.setProcessingStatus(ProcessingStatus.COMPLETED);
             lemma.setProcessingError(null);
             lemmaRepository.save(lemma);
 
-            logger.info("Background processing completed successfully for lemma ID: {}", lemmaId);
+            logger.info("Background processing COMPLETED — lemma ID: {}, '{}', total: {}ms",
+                lemmaId, lemma.getText(), Duration.between(totalStart, Instant.now()).toMillis());
 
         } catch (Exception e) {
-            logger.error("Background processing failed for lemma ID: {}", lemmaId, e);
+            long elapsed = Duration.between(totalStart, Instant.now()).toMillis();
+            logger.error("Background processing FAILED — lemma ID: {}, after {}ms: {}",
+                lemmaId, elapsed, e.getMessage(), e);
 
-            // Mark as failed with error message
             lemma.setProcessingStatus(ProcessingStatus.FAILED);
             lemma.setProcessingError(e.getMessage());
             lemmaRepository.save(lemma);

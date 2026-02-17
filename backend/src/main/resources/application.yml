@@ -2,6 +2,10 @@ spring:
   application:
     name: bulgarian-vocabulary
 
+  threads:
+    virtual:
+      enabled: true  # Java 25 virtual threads for Tomcat and @Async executors
+
   servlet:
     encoding:
       charset: UTF-8
@@ -82,3 +86,15 @@ tts:
       female: bg-BG-KalinaNeural
       male: bg-BG-BorislavNeural
       default: ${tts.bulgarian.voice.female}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}

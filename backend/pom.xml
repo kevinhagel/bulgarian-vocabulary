@@ -19,7 +19,7 @@
     <description>Bulgarian vocabulary learning application with morphology awareness</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <mapstruct.version>1.6.2</mapstruct.version>
     </properties>
 
@@ -113,6 +113,18 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot Actuator (metrics, health, info endpoints) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Micrometer Prometheus registry (exposes /actuator/prometheus) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -141,8 +153,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>25</source>
+                    <target>25</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.mapstruct</groupId>
@@ -160,7 +172,7 @@
                 <configuration>
                     <url>jdbc:postgresql://macstudio:5432/bulgarian_vocab</url>
                     <user>vocab_user</user>
-                    <password>BG_Vocab_2026_PostgreSQL!</password>
+                    <password>${env.POSTGRES_PASSWORD}</password>
                     <locations>
                         <location>filesystem:src/main/resources/db/migration</location>
                     </locations>
