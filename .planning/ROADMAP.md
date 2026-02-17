@@ -142,10 +142,13 @@ Plans:
   13. User can view per-lemma study stats (last reviewed, review count, correctness rate)
   14. System tracks total vocabulary count (user-entered only, excludes reference)
   15. System calculates retention rate (correct / total reviews)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 06-01: TBD during planning
+- [ ] 06-01-PLAN.md -- V5 migration (srs_state, study_sessions, session_cards, study_reviews), SRS entities, SM-2 algorithm, StudySessionService, StudyController (5 endpoints)
+- [ ] 06-02-PLAN.md -- Flashcard UI: study types, Zustand store, API hooks, StudyLauncher, FlashcardFront/Back, FlashcardView, SessionProgress, SessionSummaryView, App navigation
+- [ ] 06-03-PLAN.md -- Progress dashboard: ProgressDashboardDTO, LemmaStatsDTO, ProgressService, ProgressController, ProgressDashboard component, LemmaSrsInfo in VocabularyDetail
+- [ ] 06-04-PLAN.md -- Hardening: error handling, empty session guard, due count badge on VocabularyList, end-to-end UAT of all 15 success criteria
 
 ### Phase 7: Word Lists & Organization
 **Goal**: Create and manage word lists with list-specific study sessions
@@ -192,7 +195,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. TTS Audio Generation | 2/2 | ✓ Complete | 2026-02-16 |
 | 4. Core Vocabulary Management | 2/2 | ✓ Complete | 2026-02-16 |
 | 5. Frontend Foundation & Vocabulary UI | 4/4 | ✓ Complete | 2026-02-16 |
-| 6. Flashcards & Basic Study | 0/TBD | Not started | - |
+| 6. Flashcards & Basic Study | 0/4 | Planning complete | - |
 | 7. Word Lists & Organization | 0/TBD | Not started | - |
 | 8. Advanced SRS & Polish | 0/TBD | Not started | - |
 

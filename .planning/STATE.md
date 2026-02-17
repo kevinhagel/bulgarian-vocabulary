@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 6 of 8 (Flashcards & Basic Study) - Ready to plan
-Plan: Phase 5 complete, Phase 6 not started
-Status: Frontend vocabulary UI complete, background processing optimization deferred to Phase 6
-Last activity: 2026-02-16 — Completed Phase 5: Frontend Foundation & Vocabulary UI (4/4 plans)
+Phase: 6 of 8 (Flashcards & Basic Study) - Planning complete, ready to execute
+Plan: Phase 5 complete, Phase 6 planned (4 plans written)
+Status: Phase 6 plans written and ready to execute
+Last activity: 2026-02-17 — Planned Phase 6: Flashcards & Basic Study (4/4 plans written)
 
 Progress: [████████████] 62.5%
 
@@ -125,9 +125,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 05-03-PLAN.md - CRUD forms with validation
-Resume file: .planning/phases/05-frontend-foundation-vocabulary-ui/05-03-SUMMARY.md
+Last session: 2026-02-17 (planning)
+Stopped at: Phase 6 planning complete — 4 plans written
+Resume file: .planning/phases/06-flashcards-basic-study/06-01-PLAN.md
+Next action: Execute 06-01-PLAN.md (V5 migration, SRS entities, SM-2 algorithm, study session API)
 
 ---
 *State initialized: 2026-02-15*
