@@ -27,6 +27,9 @@ public class Inflection {
     @Column(name = "grammatical_info", length = 100)
     private String grammaticalInfo;
 
+    @Column(name = "difficulty_level", length = 20)
+    private String difficultyLevel;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lemma_id", nullable = false)
     private Lemma lemma;
@@ -77,6 +80,14 @@ public class Inflection {
 
     public void setGrammaticalInfo(String grammaticalInfo) {
         this.grammaticalInfo = grammaticalInfo;
+    }
+
+    public String getDifficultyLevel() {
+        return difficultyLevel;
+    }
+
+    public void setDifficultyLevel(String difficultyLevel) {
+        this.difficultyLevel = difficultyLevel;
     }
 
     public Lemma getLemma() {

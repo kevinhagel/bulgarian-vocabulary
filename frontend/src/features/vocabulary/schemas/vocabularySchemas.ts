@@ -3,10 +3,11 @@ import { z } from 'zod';
 /**
  * Validation schema for creating new vocabulary entries.
  * User provides an inflected word form (not necessarily the canonical lemma).
+ * Translation is optional - auto-generated via Google Translate if not provided.
  */
 export const createVocabularySchema = z.object({
   wordForm: z.string().min(1, 'Word form is required').max(100, 'Word form too long'),
-  translation: z.string().min(1, 'Translation is required').max(200, 'Translation too long'),
+  translation: z.string().max(200, 'Translation too long').optional().or(z.literal('')),
   notes: z.string().max(5000, 'Notes too long').optional().or(z.literal('')),
 });
 

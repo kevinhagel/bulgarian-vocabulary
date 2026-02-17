@@ -67,12 +67,12 @@ export function VocabularyForm({ mode, defaultValues, onSubmit, isSubmitting, on
       {/* Translation */}
       <div>
         <label htmlFor="translation" className="block text-sm font-medium text-gray-700 mb-1">
-          English Translation
+          English Translation {mode === 'create' && <span className="text-gray-500 font-normal">(optional - auto-translated if empty)</span>}
         </label>
         <input
           id="translation"
           type="text"
-          placeholder="Enter English translation"
+          placeholder={mode === 'create' ? 'Optional - will auto-translate' : 'Enter English translation'}
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             errors.translation ? 'border-red-500' : 'border-gray-300'
           }`}

@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-bulgarian_vocab}
       POSTGRES_USER: ${POSTGRES_USER:-vocab_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vocab_pass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     command:
@@ -23,6 +23,7 @@ services:
       - -c
       - checkpoint_completion_target=0.9
       - -c
+      
       - wal_buffers=16MB
       - -c
       - default_statistics_target=100

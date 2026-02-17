@@ -20,6 +20,7 @@ export default defineConfig({
       'macstudio',
       'mac-studio',
       'mac-studio.local',
+      'hagelbg.dyndns-ip.com',
     ],
     proxy: {
       '/api': {

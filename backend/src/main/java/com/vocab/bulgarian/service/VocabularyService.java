@@ -5,6 +5,7 @@ import com.vocab.bulgarian.api.mapper.LemmaMapper;
 import com.vocab.bulgarian.domain.Lemma;
 import com.vocab.bulgarian.domain.enums.DifficultyLevel;
 import com.vocab.bulgarian.domain.enums.PartOfSpeech;
+import com.vocab.bulgarian.domain.enums.ProcessingStatus;
 import com.vocab.bulgarian.domain.enums.ReviewStatus;
 import com.vocab.bulgarian.domain.enums.Source;
 import com.vocab.bulgarian.llm.service.LlmOrchestrationService;
@@ -28,34 +29,48 @@ public class VocabularyService {
 
     private final LemmaRepository lemmaRepository;
     private final LlmOrchestrationService llmOrchestrationService;
+    private final BackgroundProcessingService backgroundProcessingService;
     private final LemmaMapper lemmaMapper;
 
     public VocabularyService(
         LemmaRepository lemmaRepository,
         LlmOrchestrationService llmOrchestrationService,
+        BackgroundProcessingService backgroundProcessingService,
         LemmaMapper lemmaMapper
     ) {
         this.lemmaRepository = lemmaRepository;
         this.llmOrchestrationService = llmOrchestrationService;
+        this.backgroundProcessingService = backgroundProcessingService;
         this.lemmaMapper = lemmaMapper;
     }
 
     /**
-     * Create new vocabulary entry with LLM processing.
-     * Processes the word form through LLM orchestration to detect lemma,
-     * generate inflections, and extract metadata.
+     * Create new vocabulary entry with background LLM processing.
+     * Saves entry immediately with QUEUED status, then triggers async processing.
+     * Returns instantly (< 1 second) instead of blocking for LLM (60-90 seconds).
      *
-     * @param request create request with word form, translation, and notes
-     * @return CompletableFuture with created lemma detail DTO
+     * @param request create request with word form, optional translation, and notes
+     * @return CompletableFuture with created lemma detail DTO (status: QUEUED)
      */
     @Transactional
     public CompletableFuture<LemmaDetailDTO> createVocabulary(CreateLemmaRequestDTO request) {
-        return llmOrchestrationService.processNewWord(request.wordForm())
-            .thenApply(llmResult -> {
-                Lemma lemma = lemmaMapper.toEntity(request, llmResult);
-                Lemma saved = lemmaRepository.save(lemma);
-                return lemmaMapper.toDetailDTO(saved);
-            });
+        // Step 1: Create lemma entity with user input (translation optional)
+        Lemma lemma = new Lemma();
+        lemma.setText(request.wordForm()); // Will be updated to canonical form during background processing
+        lemma.setTranslation(request.translation()); // May be null - auto-translated in background
+        lemma.setNotes(request.notes());
+        lemma.setSource(Source.USER_ENTERED);
+        lemma.setReviewStatus(ReviewStatus.PENDING);
+        lemma.setProcessingStatus(ProcessingStatus.QUEUED);
+
+        // Step 2: Save immediately (returns in < 1 second)
+        Lemma saved = lemmaRepository.save(lemma);
+
+        // Step 3: Trigger background processing (async, non-blocking)
+        backgroundProcessingService.processLemma(saved.getId());
+
+        // Step 4: Return saved entry with QUEUED status
+        return CompletableFuture.completedFuture(lemmaMapper.toDetailDTO(saved));
     }
 
     /**

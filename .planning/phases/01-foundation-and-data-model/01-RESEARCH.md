@@ -750,7 +750,7 @@ services:
     environment:
       POSTGRES_DB: bulgarian_vocab
       POSTGRES_USER: vocab_user
-      POSTGRES_PASSWORD: vocab_pass
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     ports:
       - "5432:5432"
     volumes:
@@ -774,7 +774,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bulgarian_vocab
     username: vocab_user
-    password: vocab_pass
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:

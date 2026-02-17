@@ -2,6 +2,7 @@ package com.vocab.bulgarian.domain;
 
 import com.vocab.bulgarian.domain.enums.DifficultyLevel;
 import com.vocab.bulgarian.domain.enums.PartOfSpeech;
+import com.vocab.bulgarian.domain.enums.ProcessingStatus;
 import com.vocab.bulgarian.domain.enums.ReviewStatus;
 import com.vocab.bulgarian.domain.enums.Source;
 import jakarta.persistence.*;
@@ -30,10 +31,9 @@ public class Lemma {
     @Column(nullable = false, length = 100)
     private String text;
 
-    @NotNull
-    @Size(min = 1, max = 200)
-    @Column(nullable = false, length = 200)
-    private String translation;
+    @Size(max = 200)
+    @Column(length = 200)
+    private String translation; // Nullable - filled by background processor
 
     @Column(columnDefinition = "TEXT")
     private String notes;
@@ -59,6 +59,14 @@ public class Lemma {
     @Column(name = "review_status", nullable = false, length = 20)
     private ReviewStatus reviewStatus;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "processing_status", nullable = false, length = 20)
+    private ProcessingStatus processingStatus;
+
+    @Column(name = "processing_error", columnDefinition = "TEXT")
+    private String processingError;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -80,6 +88,9 @@ public class Lemma {
         updatedAt = LocalDateTime.now();
         if (reviewStatus == null) {
             reviewStatus = ReviewStatus.PENDING;
+        }
+        if (processingStatus == null) {
+            processingStatus = ProcessingStatus.QUEUED;
         }
     }
 
@@ -208,5 +219,21 @@ public class Lemma {
 
     public void setInflections(List<Inflection> inflections) {
         this.inflections = inflections;
+    }
+
+    public ProcessingStatus getProcessingStatus() {
+        return processingStatus;
+    }
+
+    public void setProcessingStatus(ProcessingStatus processingStatus) {
+        this.processingStatus = processingStatus;
+    }
+
+    public String getProcessingError() {
+        return processingError;
+    }
+
+    public void setProcessingError(String processingError) {
+        this.processingError = processingError;
     }
 }

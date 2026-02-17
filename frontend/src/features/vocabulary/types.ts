@@ -18,6 +18,8 @@ export type PartOfSpeech =
 
 export type DifficultyLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
+export type InflectionDifficulty = 'BASIC' | 'INTERMEDIATE' | 'ADVANCED';
+
 export type ReviewStatus = 'PENDING' | 'REVIEWED' | 'NEEDS_CORRECTION';
 
 // DTOs
@@ -25,6 +27,7 @@ export interface InflectionDTO {
   id: number;
   form: string;
   grammaticalInfo: string | null;
+  difficultyLevel: InflectionDifficulty | null;
 }
 
 export interface LemmaResponseDTO {

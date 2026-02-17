@@ -61,7 +61,7 @@ re_verification: false
 
 | From | To | Via | Status | Details |
 |------|-----|-----|--------|---------|
-| compose.yaml | application.yml | PostgreSQL connection parameters (port, database, user, password) | ✓ WIRED | compose.yaml defines POSTGRES_DB: bulgarian_vocab, POSTGRES_USER: vocab_user, POSTGRES_PASSWORD: vocab_pass, ports: 5432:5432. application.yml uses jdbc:postgresql://localhost:5432/bulgarian_vocab with matching credentials |
+| compose.yaml | application.yml | PostgreSQL connection parameters (port, database, user, password) | ✓ WIRED | compose.yaml defines POSTGRES_DB: bulgarian_vocab, POSTGRES_USER: vocab_user, POSTGRES_PASSWORD: set via .env, ports: 5432:5432. application.yml uses jdbc:postgresql://localhost:5432/bulgarian_vocab with matching credentials |
 | application.yml | db/migration/ | Flyway migration location classpath:db/migration | ✓ WIRED | application.yml line 25: "locations: classpath:db/migration", V1 and V2 migrations exist in src/main/resources/db/migration/ and have been applied (verified via flyway_schema_history) |
 
 #### Plan 02 Key Links

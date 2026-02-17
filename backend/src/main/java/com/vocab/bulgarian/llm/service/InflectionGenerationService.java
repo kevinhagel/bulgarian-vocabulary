@@ -66,18 +66,25 @@ public class InflectionGenerationService {
             for present tense, past aorist, past imperfect, and imperative mood.
             Include the grammatical tags for each form (e.g., "1sg.pres", "3pl.past.aor").
 
+            IMPORTANT: Tag each inflection with a difficulty level:
+            - BASIC: Only 1sg.pres (аз) and 3sg.pres (той/тя/то) - beginner forms matching Elena's teaching
+            - INTERMEDIATE: Remaining present tense: 2sg.pres (ти), 1pl.pres (ние), 2pl.pres (вие), 3pl.pres (те)
+            - ADVANCED: All past tenses (aorist, imperfect) and imperative forms
+
             For nouns, include singular and plural forms, with and without the definite article.
             Include grammatical tags (e.g., "sg.indef", "sg.def", "pl.indef", "pl.def").
+            Tag: BASIC (sg.indef), INTERMEDIATE (pl.indef), ADVANCED (definite articles).
 
             For adjectives, include masculine, feminine, neuter, and plural forms,
             with and without the definite article.
+            Tag: BASIC (masc), INTERMEDIATE (fem, neut, pl), ADVANCED (definite forms).
 
             Respond in JSON format matching this structure:
             {
               "lemma": "the lemma",
               "partOfSpeech": "VERB|NOUN|ADJECTIVE|etc",
               "inflections": [
-                {"text": "inflected form", "grammaticalTags": "tags"}
+                {"text": "inflected form", "grammaticalTags": "tags", "difficultyLevel": "BASIC|INTERMEDIATE|ADVANCED"}
               ]
             }
             """, partOfSpeech, normalizedLemma);

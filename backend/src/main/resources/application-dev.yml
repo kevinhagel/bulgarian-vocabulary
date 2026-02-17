@@ -19,7 +19,7 @@ spring:
       chat:
         enabled: true
         options:
-          model: qwen2.5:7b  # Faster 7B model instead of 9B BgGPT
+          model: todorov/bggpt:9B-IT-v1.0.Q4_K_M  # Bulgarian-specific model for accurate morphology
           temperature: 0.3
           num-ctx: 4096
           num-gpu: 99

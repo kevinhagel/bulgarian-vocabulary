@@ -15,10 +15,11 @@ public record InflectionSet(
     @NotEmpty List<InflectionEntry> inflections
 ) {
     /**
-     * Individual inflection entry with grammatical tags.
+     * Individual inflection entry with grammatical tags and difficulty level.
      */
     public record InflectionEntry(
         @NotBlank String text,          // The inflected form (Cyrillic)
-        String grammaticalTags          // e.g., "1sg.pres.perf", "3pl.past.imperf"
+        String grammaticalTags,         // e.g., "1sg.pres", "3pl.past.imperf"
+        String difficultyLevel          // BASIC (аз, той/тя/то), INTERMEDIATE, ADVANCED
     ) {}
 }
