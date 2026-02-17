@@ -6,35 +6,37 @@
 
 **All development and infrastructure runs on Mac Studio**
 
-- **Mac Studio**: Everything runs here locally
+- **Mac Studio M4 Max** (32 GPU cores, Metal 4): Everything runs here locally
   - Docker Compose for infrastructure (PostgreSQL, pgAdmin, Valkey)
   - Spring Boot backend development and execution
   - React frontend development (Phase 5+)
-  - Ollama for LLM (BgGPT model)
+  - Ollama for LLM (BgGPT model) — auto-starts via launchd, no manual start needed
   - Claude Code and GSD workflow
-  - No SSH tunnels needed - everything is localhost
+  - No SSH tunnels needed — everything is localhost
 
 ### Development Workflow
 
 **On Mac Studio (everything local):**
 - Edit code in `backend/` (Spring Boot) and `frontend/` (React)
-- Run Spring Boot via IDE/IntelliJ or Maven: `mvn spring-boot:run -Dspring-boot.run.profiles=dev`
+- Run Spring Boot via Maven: `mvn spring-boot:run -Dspring-boot.run.profiles=dev`
 - Access services via localhost: PostgreSQL (5432), Valkey (6379), Ollama (11434)
 - Spring Boot connects to: `localhost:5432`, `localhost:6379`, `localhost:11434`
+- Actuator endpoints: `http://localhost:8080/actuator/health`, `/actuator/metrics`, `/actuator/prometheus`
 
-### Deployment
+### Startup
 
-**Infrastructure management:**
+**Infrastructure** (PostgreSQL, Valkey, pgAdmin) — usually already running:
 ```bash
-# Start infrastructure
 cd ~/bulgarian-vocabulary
 docker-compose up -d
-
-# Check status
 docker-compose ps
+```
 
-# View logs
-docker-compose logs -f postgres
+**Ollama** — auto-starts on login via launchd. If not running:
+```bash
+brew services restart ollama
+ollama list    # verify models are found (stored on /Volumes/T7-NorthStar/ollama-models)
+ollama ps      # check if a model is loaded and which processor
 ```
 
 **Database migrations:**
@@ -48,21 +50,18 @@ mvn flyway:info           # Check migration status
 **Run Spring Boot backend:**
 ```bash
 cd ~/bulgarian-vocabulary/backend
-export POSTGRES_PASSWORD='BG_Vocab_2026_PostgreSQL!'
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# No POSTGRES_PASSWORD export needed — DB volume was initialized with password from .env
 ```
 
 **Run React frontend (Phase 5+):**
 ```bash
 cd ~/bulgarian-vocabulary/frontend
-npm install              # Install dependencies
-npm run dev              # Start dev server
-npm run build            # Build for production
+npm install              # Install dependencies (first time only)
+npm run dev              # Start dev server (binds to 0.0.0.0:5173)
 ```
 
 ## Project Structure
-
-**Single-machine development with all components:**
 
 ```
 bulgarian-vocabulary/                    ← Project root
@@ -79,27 +78,45 @@ bulgarian-vocabulary/                    ← Project root
 ├── .planning/                          ← GSD workflow files
 │   ├── PROJECT.md
 │   ├── ROADMAP.md
+│   ├── STATE.md
 │   └── phases/
+│
+├── docs/                               ← Obsidian vault (session summaries)
 │
 ├── config/                             ← Configuration files
 │   ├── valkey.conf
 │   └── valkey-prod.conf
 │
-├── scripts/                            ← Utility scripts
-│
 ├── docker-compose.yml                  ← Infrastructure services
-├── .env.production                     ← Environment variables
+├── .env                                ← Local env vars (gitignored, contains passwords)
 └── CLAUDE.md                           ← This file
 ```
 
 ## Technology Stack
 
-- **Backend**: Spring Boot 4.2.x, Java 25, Spring AI 2.0, JPA/Hibernate
+- **Backend**: Spring Boot 3.4.2, Java 25, Spring AI 1.1.0-M3, JPA/Hibernate
+- **Async**: Java 25 virtual threads (`spring.threads.virtual.enabled=true`) — no thread pools
 - **Database**: PostgreSQL 16 with PGroonga (Bulgarian Cyrillic full-text search)
 - **Cache**: Valkey 7.2 (Redis-compatible) for LLM response caching
-- **LLM**: Ollama (BgGPT model: todorov/bggpt:9b) running locally
-- **TTS**: edge-tts 7.2.7 for Bulgarian audio generation
+- **LLM**: Ollama (BgGPT: `todorov/bggpt:9B-IT-v1.0.Q4_K_M`) — models on T7 SSD
+- **TTS**: edge-tts for Bulgarian audio generation
 - **Frontend**: React 19 + Vite 6 + TypeScript
+- **Metrics**: Spring Boot Actuator + Micrometer Prometheus
+
+## Network (Mac Studio)
+
+- IP: `192.168.1.10` (static via DHCP manual address)
+- Router forwards ports 5170–5179 → Mac Studio
+- Frontend externally accessible: `hagelbg.dyndns-ip.com:5173`
+- Vite config: `host: 0.0.0.0`, allowedHosts includes DynDNS hostname
+
+## Ollama Configuration
+
+- **Models stored**: `/Volumes/T7-NorthStar/ollama-models` (external SSD)
+- **Auto-start**: launchd via `~/Library/LaunchAgents/homebrew.mxcl.ollama.plist`
+- **Env vars**: set via `~/Library/LaunchAgents/ollama-environment.plist` (survives brew updates)
+- **GPU**: 76% GPU / 24% CPU on M4 Max — `num-gpu: 99` in application-dev.yml
+- **No menu bar icon**: Homebrew CLI install. For icon, install Ollama.app from ollama.ai
 
 ## Bulgarian Language Requirements
 
@@ -110,16 +127,25 @@ bulgarian-vocabulary/                    ← Project root
 
 ## Environment Variables
 
-Set these before running backend:
+The `.env` file (gitignored) is auto-loaded by docker-compose and contains all passwords.
+Backend picks up `POSTGRES_PASSWORD` from the shell environment set at container init time.
+
+For Flyway Maven plugin (run from CLI):
 ```bash
 export POSTGRES_PASSWORD='BG_Vocab_2026_PostgreSQL!'
-export OLLAMA_BASE_URL='http://localhost:11434'
-export AUDIO_STORAGE_PATH='/Volumes/T9-NorthStar/bulgarian-vocab/audio'
+mvn flyway:info
 ```
+
+Ollama env vars are set in `~/Library/LaunchAgents/ollama-environment.plist` — do not set
+them in `.zshrc` only, as launchd won't see them.
 
 ## Never Do This
 
 - ❌ Run docker-compose on a different machine
 - ❌ Expose PostgreSQL/Valkey to internet (127.0.0.1 binding only)
 - ❌ Commit .env or .env.production files (contain passwords)
+- ❌ Commit hardcoded passwords anywhere (use `${env.VAR}` in Maven, `${VAR}` in Spring)
 - ❌ Modify Phase 1-4 database schema (migrations are immutable)
+- ❌ Use Python in scripts (not in tech stack — use jq, ollama CLI, curl)
+- ❌ Use `brew services restart ollama` without knowing it resets the plist
+  (the ollama-environment.plist re-applies env vars, so it's safe — but good to know)
