@@ -1,4 +1,5 @@
 import { useDebounce } from '@/hooks/useDebounce';
+import { useDueCount } from '@/features/study/api/useDueCount';
 import { useVocabulary } from '../api/useVocabulary';
 import { useSearchVocabulary } from '../api/useSearchVocabulary';
 import { useVocabularyUIStore } from '../stores/useVocabularyUIStore';
@@ -8,13 +9,14 @@ import { Pagination } from './Pagination';
 
 interface VocabularyListProps {
   onViewDetail: (id: number) => void;
+  onNavigateStudy?: () => void;
 }
 
 /**
  * Main vocabulary list page component.
  * Displays vocabulary entries with search, filtering, pagination, and audio playback.
  */
-export function VocabularyList({ onViewDetail }: VocabularyListProps) {
+export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyListProps) {
   // Get UI state from Zustand store
   const searchQuery = useVocabularyUIStore(state => state.searchQuery);
   const selectedSource = useVocabularyUIStore(state => state.selectedSource);
@@ -26,6 +28,9 @@ export function VocabularyList({ onViewDetail }: VocabularyListProps) {
   const openCreateModal = useVocabularyUIStore(state => state.openCreateModal);
   const openEditModal = useVocabularyUIStore(state => state.openEditModal);
   const openDeleteConfirm = useVocabularyUIStore(state => state.openDeleteConfirm);
+
+  const { data: dueCount } = useDueCount();
+  const totalDue = (dueCount?.dueToday ?? 0) + (dueCount?.newCards ?? 0);
 
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -61,16 +66,32 @@ export function VocabularyList({ onViewDetail }: VocabularyListProps) {
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Vocabulary</h1>
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-        >
+        <div className="flex items-center gap-2">
+          {totalDue > 0 && onNavigateStudy && (
+            <button
+              onClick={onNavigateStudy}
+              className="flex items-center gap-1.5 px-3 py-2 bg-orange-50 hover:bg-orange-100
+                         border border-orange-200 rounded-lg text-sm font-medium text-orange-700
+                         transition-colors"
+            >
+              <span className="inline-flex items-center justify-center w-5 h-5 bg-orange-500
+                               text-white text-xs rounded-full font-bold">
+                {totalDue > 99 ? '99+' : totalDue}
+              </span>
+              Study
+            </button>
+          )}
+          <button
+            onClick={openCreateModal}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+          >
           <svg className="inline-block w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
           Add Vocabulary
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

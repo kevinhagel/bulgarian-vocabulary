@@ -61,6 +61,18 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle illegal state errors (400) — e.g. no cards available, session not active.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail handleIllegalState(IllegalStateException ex) {
+        logger.warn("Illegal state: {}", ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problemDetail.setTitle("Invalid Request");
+        problemDetail.setDetail(ex.getMessage());
+        return problemDetail;
+    }
+
+    /**
      * Handle all other exceptions (500).
      * Log the full exception but don't expose details to client.
      */

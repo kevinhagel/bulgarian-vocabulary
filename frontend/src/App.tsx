@@ -82,7 +82,7 @@ function App() {
       {appView === 'vocabulary' && (
         <>
           {selectedLemmaId === null ? (
-            <VocabularyList onViewDetail={handleViewDetail} />
+            <VocabularyList onViewDetail={handleViewDetail} onNavigateStudy={() => setAppView('study')} />
           ) : (
             <VocabularyDetail lemmaId={selectedLemmaId} onBack={handleBack} />
           )}

@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Each vocabulary entry must accurately represent the lemma (dictionary headword) with all its inflections, English translation, and metadata, enabling effective study through audio playback and interactive learning tools.
-**Current focus:** Phase 5 - Frontend Foundation and Vocabulary UI
+**Current focus:** Phase 7 - ready to plan
 
 ## Current Position
 
-Phase: 6 of 8 (Flashcards & Basic Study) - Planning complete, ready to execute
-Plan: Phase 5 complete, Phase 6 planned (4 plans written)
-Status: Phase 6 plans written and ready to execute
-Last activity: 2026-02-17 — Planned Phase 6: Flashcards & Basic Study (4/4 plans written)
+Phase: 7 of 8 (next phase) - Phase 6 complete
+Plan: Phase 6 complete (4/4 plans executed)
+Status: Ready to plan Phase 7
+Last activity: 2026-02-17 — Phase 6 complete (SRS backend, flashcard UI, progress dashboard, polish)
 
-Progress: [████████████] 62.5%
+Progress: [██████████████████] 75%
 
 ## Performance Metrics
 
