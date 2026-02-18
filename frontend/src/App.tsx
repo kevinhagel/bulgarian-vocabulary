@@ -14,18 +14,24 @@ import { StudyLauncher } from '@/features/study/components/StudyLauncher';
 import { FlashcardView } from '@/features/study/components/FlashcardView';
 import { SessionSummaryView } from '@/features/study/components/SessionSummaryView';
 import { ProgressDashboard } from '@/features/study/components/ProgressDashboard';
+import { useListsUIStore } from '@/features/lists/stores/useListsUIStore';
+import { ListsView } from '@/features/lists/components/ListsView';
+import { ListDetail } from '@/features/lists/components/ListDetail';
+import { AddVocabularyToList } from '@/features/lists/components/AddVocabularyToList';
 
-type AppView = 'vocabulary' | 'study';
+type AppView = 'vocabulary' | 'study' | 'lists';
 
 function App() {
   const { data: user, isLoading } = useAuth();
   const [appView, setAppView] = useState<AppView>('vocabulary');
   const [selectedLemmaId, setSelectedLemmaId] = useState<number | null>(null);
+  const [addVocabListId, setAddVocabListId] = useState<number | null>(null);
   const { phase: studyPhase } = useStudyStore();
   const { data: dueCount } = useDueCount();
   const totalDue = (dueCount?.dueToday ?? 0) + (dueCount?.newCards ?? 0);
 
   const deletingLemmaId = useVocabularyUIStore(state => state.deletingLemmaId);
+  const { selectedListId, clearSelection } = useListsUIStore();
 
   useEffect(() => {
     if (deletingLemmaId !== null && deletingLemmaId === selectedLemmaId) {
@@ -44,13 +50,19 @@ function App() {
   const handleViewDetail = (id: number) => setSelectedLemmaId(id);
   const handleBack = () => setSelectedLemmaId(null);
 
+  const handleSwitchTab = (tab: AppView) => {
+    setAppView(tab);
+    // Reset list selection when leaving lists tab
+    if (tab !== 'lists') clearSelection();
+  };
+
   return (
     <Layout>
       {/* Tab navigation */}
       <div className="border-b border-gray-200 mb-6 -mt-2">
         <nav className="flex gap-1">
           <button
-            onClick={() => setAppView('vocabulary')}
+            onClick={() => handleSwitchTab('vocabulary')}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               appView === 'vocabulary'
                 ? 'border-blue-600 text-blue-600'
@@ -60,7 +72,7 @@ function App() {
             Vocabulary
           </button>
           <button
-            onClick={() => setAppView('study')}
+            onClick={() => handleSwitchTab('study')}
             className={`relative px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               appView === 'study'
                 ? 'border-blue-600 text-blue-600'
@@ -75,6 +87,16 @@ function App() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => handleSwitchTab('lists')}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              appView === 'lists'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Lists
+          </button>
         </nav>
       </div>
 
@@ -82,7 +104,7 @@ function App() {
       {appView === 'vocabulary' && (
         <>
           {selectedLemmaId === null ? (
-            <VocabularyList onViewDetail={handleViewDetail} onNavigateStudy={() => setAppView('study')} />
+            <VocabularyList onViewDetail={handleViewDetail} onNavigateStudy={() => handleSwitchTab('study')} />
           ) : (
             <VocabularyDetail lemmaId={selectedLemmaId} onBack={handleBack} />
           )}
@@ -98,10 +120,31 @@ function App() {
         </>
       )}
 
+      {/* Lists view */}
+      {appView === 'lists' && (
+        <>
+          {selectedListId === null ? (
+            <ListsView />
+          ) : (
+            <ListDetail
+              listId={selectedListId}
+              onBack={clearSelection}
+              onStudyStarted={() => setAppView('study')}
+              onAddVocabulary={() => setAddVocabListId(selectedListId)}
+            />
+          )}
+        </>
+      )}
+
       {/* CRUD Modals */}
       <CreateVocabularyModal />
       <EditVocabularyModal />
       <DeleteConfirmDialog />
+
+      {/* Add vocabulary to list modal */}
+      {addVocabListId !== null && (
+        <AddVocabularyToList listId={addVocabListId} onClose={() => setAddVocabListId(null)} />
+      )}
     </Layout>
   );
 }
