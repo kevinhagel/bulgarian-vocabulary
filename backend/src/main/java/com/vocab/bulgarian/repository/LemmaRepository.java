@@ -3,6 +3,7 @@ package com.vocab.bulgarian.repository;
 import com.vocab.bulgarian.domain.Lemma;
 import com.vocab.bulgarian.domain.enums.DifficultyLevel;
 import com.vocab.bulgarian.domain.enums.PartOfSpeech;
+import com.vocab.bulgarian.domain.enums.ProcessingStatus;
 import com.vocab.bulgarian.domain.enums.ReviewStatus;
 import com.vocab.bulgarian.domain.enums.Source;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,8 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
     Optional<Lemma> findByTextIgnoreCase(String text);
 
     List<Lemma> findByReviewStatus(ReviewStatus reviewStatus);
+
+    List<Lemma> findByProcessingStatusIn(List<ProcessingStatus> statuses);
 
     // Custom JPQL queries with JOIN FETCH to solve N+1 problem
     @Query("SELECT l FROM Lemma l LEFT JOIN FETCH l.inflections WHERE l.id = :id")

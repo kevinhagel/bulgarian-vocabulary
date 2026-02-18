@@ -58,7 +58,7 @@ spring:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       chat:
         options:
-          model: todorov/bggpt:9B-IT-v1.0.Q4_K_M
+          model: bggpt-vocab
           temperature: 0.3
           num-ctx: 2048
 

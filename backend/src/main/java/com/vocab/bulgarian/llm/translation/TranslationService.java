@@ -1,6 +1,8 @@
 package com.vocab.bulgarian.llm.translation;
 
 import com.vocab.bulgarian.exception.TranslationException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,6 +23,20 @@ public class TranslationService {
     private static final Logger logger = LoggerFactory.getLogger(TranslationService.class);
     private static final int TIMEOUT_SECONDS = 10;
 
+    private final Timer successTimer;
+    private final Timer failureTimer;
+
+    public TranslationService(MeterRegistry meterRegistry) {
+        this.successTimer = Timer.builder("vocab.translation.google")
+                .tag("outcome", "success")
+                .description("Google Translate subprocess duration")
+                .register(meterRegistry);
+        this.failureTimer = Timer.builder("vocab.translation.google")
+                .tag("outcome", "failure")
+                .description("Google Translate subprocess duration (failed)")
+                .register(meterRegistry);
+    }
+
     /**
      * Translate Bulgarian text to English.
      * Results are cached to avoid redundant API calls.
@@ -35,6 +51,7 @@ public class TranslationService {
             throw new TranslationException("Bulgarian text cannot be empty");
         }
 
+        Timer.Sample sample = Timer.start();
         try {
             logger.debug("Translating Bulgarian text: {}", bulgarianText);
 
@@ -94,12 +111,15 @@ public class TranslationService {
             }
 
             logger.debug("Translation successful: {} -> {}", bulgarianText, translation);
+            sample.stop(successTimer);
             return translation;
 
         } catch (InterruptedException e) {
+            sample.stop(failureTimer);
             Thread.currentThread().interrupt();
             throw new TranslationException("Translation interrupted", e);
         } catch (Exception e) {
+            sample.stop(failureTimer);
             logger.error("Translation failed for text: {}", bulgarianText, e);
             throw new TranslationException("Translation failed: " + e.getMessage(), e);
         }

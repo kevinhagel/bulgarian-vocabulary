@@ -3,6 +3,8 @@ package com.vocab.bulgarian.llm.service;
 import com.vocab.bulgarian.llm.dto.LemmaDetectionResponse;
 import com.vocab.bulgarian.llm.validation.LlmOutputValidator;
 import com.vocab.bulgarian.llm.validation.LlmValidationException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -24,10 +26,20 @@ public class LemmaDetectionService {
 
     private final ChatClient chatClient;
     private final LlmOutputValidator validator;
+    private final Timer successTimer;
+    private final Timer failureTimer;
 
-    public LemmaDetectionService(ChatClient chatClient, LlmOutputValidator validator) {
+    public LemmaDetectionService(ChatClient chatClient, LlmOutputValidator validator, MeterRegistry meterRegistry) {
         this.chatClient = chatClient;
         this.validator = validator;
+        this.successTimer = Timer.builder("vocab.llm.lemma_detection")
+                .tag("outcome", "success")
+                .description("Ollama lemma detection duration")
+                .register(meterRegistry);
+        this.failureTimer = Timer.builder("vocab.llm.lemma_detection")
+                .tag("outcome", "failure")
+                .description("Ollama lemma detection duration (failed)")
+                .register(meterRegistry);
     }
 
     /**
@@ -72,6 +84,7 @@ public class LemmaDetectionService {
             }
             """, normalizedWordForm);
 
+        Timer.Sample sample = Timer.start();
         try {
             LemmaDetectionResponse response = chatClient
                 .prompt()
@@ -85,11 +98,14 @@ public class LemmaDetectionService {
             // Validate response
             validator.validateLemmaDetection(response);
 
+            sample.stop(successTimer);
             return response;
         } catch (LlmValidationException e) {
+            sample.stop(failureTimer);
             log.error("Validation failed for lemma detection of {}: {}", normalizedWordForm, e.getMessage());
             throw e;
         } catch (Exception e) {
+            sample.stop(failureTimer);
             log.error("LLM call failed for lemma detection of {}: {}", normalizedWordForm, e.getMessage());
             throw e;
         }

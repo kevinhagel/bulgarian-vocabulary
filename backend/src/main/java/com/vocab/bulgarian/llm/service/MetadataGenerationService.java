@@ -3,6 +3,8 @@ package com.vocab.bulgarian.llm.service;
 import com.vocab.bulgarian.llm.dto.LemmaMetadata;
 import com.vocab.bulgarian.llm.validation.LlmOutputValidator;
 import com.vocab.bulgarian.llm.validation.LlmValidationException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -24,10 +26,20 @@ public class MetadataGenerationService {
 
     private final ChatClient chatClient;
     private final LlmOutputValidator validator;
+    private final Timer successTimer;
+    private final Timer failureTimer;
 
-    public MetadataGenerationService(ChatClient chatClient, LlmOutputValidator validator) {
+    public MetadataGenerationService(ChatClient chatClient, LlmOutputValidator validator, MeterRegistry meterRegistry) {
         this.chatClient = chatClient;
         this.validator = validator;
+        this.successTimer = Timer.builder("vocab.llm.metadata")
+                .tag("outcome", "success")
+                .description("Ollama metadata generation duration")
+                .register(meterRegistry);
+        this.failureTimer = Timer.builder("vocab.llm.metadata")
+                .tag("outcome", "failure")
+                .description("Ollama metadata generation duration (failed)")
+                .register(meterRegistry);
     }
 
     /**
@@ -76,6 +88,7 @@ public class MetadataGenerationService {
             }
             """, normalizedLemma);
 
+        Timer.Sample sample = Timer.start();
         try {
             LemmaMetadata response = chatClient
                 .prompt()
@@ -89,11 +102,14 @@ public class MetadataGenerationService {
             // Validate response
             validator.validateLemmaMetadata(response);
 
+            sample.stop(successTimer);
             return response;
         } catch (LlmValidationException e) {
+            sample.stop(failureTimer);
             log.error("Validation failed for metadata generation of {}: {}", normalizedLemma, e.getMessage());
             throw e;
         } catch (Exception e) {
+            sample.stop(failureTimer);
             log.error("LLM call failed for metadata generation of {}: {}", normalizedLemma, e.getMessage());
             throw e;
         }

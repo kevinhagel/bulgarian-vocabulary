@@ -3,6 +3,8 @@ package com.vocab.bulgarian.llm.service;
 import com.vocab.bulgarian.llm.dto.InflectionSet;
 import com.vocab.bulgarian.llm.validation.LlmOutputValidator;
 import com.vocab.bulgarian.llm.validation.LlmValidationException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -24,10 +26,20 @@ public class InflectionGenerationService {
 
     private final ChatClient chatClient;
     private final LlmOutputValidator validator;
+    private final Timer successTimer;
+    private final Timer failureTimer;
 
-    public InflectionGenerationService(ChatClient chatClient, LlmOutputValidator validator) {
+    public InflectionGenerationService(ChatClient chatClient, LlmOutputValidator validator, MeterRegistry meterRegistry) {
         this.chatClient = chatClient;
         this.validator = validator;
+        this.successTimer = Timer.builder("vocab.llm.inflections")
+                .tag("outcome", "success")
+                .description("Ollama inflection generation duration")
+                .register(meterRegistry);
+        this.failureTimer = Timer.builder("vocab.llm.inflections")
+                .tag("outcome", "failure")
+                .description("Ollama inflection generation duration (failed)")
+                .register(meterRegistry);
     }
 
     /**
@@ -89,6 +101,7 @@ public class InflectionGenerationService {
             }
             """, partOfSpeech, normalizedLemma);
 
+        Timer.Sample sample = Timer.start();
         try {
             InflectionSet response = chatClient
                 .prompt()
@@ -102,12 +115,15 @@ public class InflectionGenerationService {
             // Validate response
             validator.validateInflectionSet(response);
 
+            sample.stop(successTimer);
             return response;
         } catch (LlmValidationException e) {
+            sample.stop(failureTimer);
             log.error("Validation failed for inflection generation of {} ({}): {}",
                 normalizedLemma, partOfSpeech, e.getMessage());
             throw e;
         } catch (Exception e) {
+            sample.stop(failureTimer);
             log.error("LLM call failed for inflection generation of {} ({}): {}",
                 normalizedLemma, partOfSpeech, e.getMessage());
             throw e;

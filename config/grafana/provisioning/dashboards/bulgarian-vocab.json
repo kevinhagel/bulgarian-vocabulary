@@ -1,0 +1,577 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Words Processed",
+      "description": "Total words successfully processed end-to-end",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_processing_words_total{outcome=\"success\"}",
+          "legendFormat": "Processed",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Words Failed",
+      "description": "Total words that failed processing",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 3}
+            ]
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_processing_words_total{outcome=\"failure\"}",
+          "legendFormat": "Failed",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Success Rate",
+      "description": "Percentage of words successfully processed",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 80},
+              {"color": "green", "value": 95}
+            ]
+          },
+          "unit": "percent",
+          "noValue": "—",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_processing_words_total{outcome=\"success\"} / (vocab_processing_words_total{outcome=\"success\"} + vocab_processing_words_total{outcome=\"failure\"}) * 100",
+          "legendFormat": "Success Rate",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Ollama Circuit Breaker",
+      "description": "0 = Closed (healthy), 1 = Open (tripped), 2 = Half-Open",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 2},
+              {"color": "red", "value": 1}
+            ]
+          },
+          "mappings": [
+            {"type": "value", "options": {"0": {"text": "Closed", "color": "green"}}},
+            {"type": "value", "options": {"1": {"text": "OPEN", "color": "red"}}},
+            {"type": "value", "options": {"2": {"text": "Half-Open", "color": "yellow"}}}
+          ],
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "resilience4j_circuitbreaker_state{name=\"ollama\"}",
+          "legendFormat": "State",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "End-to-End Processing Time",
+      "description": "How long it takes to fully process one word (LLM pipeline + translation + DB saves)",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "spanNulls": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Max"},
+            "properties": [
+              {"id": "custom.lineStyle", "value": {"dash": [6, 3], "fill": "dash"}},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {"mode": "multi", "sort": "desc"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_processing_total_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_processing_total_seconds_count{outcome=\"success\"}[$__rate_interval])",
+          "legendFormat": "Average",
+          "refId": "A"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_processing_total_seconds_max{outcome=\"success\"}",
+          "legendFormat": "Max",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "LLM Step Timings",
+      "description": "Average duration of each Ollama call. Inflections and metadata run in parallel after lemma detection.",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "auto",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {"mode": "multi", "sort": "desc"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_llm_lemma_detection_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_llm_lemma_detection_seconds_count{outcome=\"success\"}[$__rate_interval])",
+          "legendFormat": "Lemma Detection",
+          "refId": "A"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_llm_inflections_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_llm_inflections_seconds_count{outcome=\"success\"}[$__rate_interval])",
+          "legendFormat": "Inflection Generation",
+          "refId": "B"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_llm_metadata_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_llm_metadata_seconds_count{outcome=\"success\"}[$__rate_interval])",
+          "legendFormat": "Metadata Generation",
+          "refId": "C"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_translation_google_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_translation_google_seconds_count{outcome=\"success\"}[$__rate_interval])",
+          "legendFormat": "Google Translate",
+          "refId": "D"
+        }
+      ]
+    },
+
+    {
+      "id": 7,
+      "type": "bargauge",
+      "title": "Step Duration Comparison (last observed average)",
+      "description": "Side-by-side comparison of how long each step takes on average",
+      "gridPos": {"h": 8, "w": 14, "x": 0, "y": 20},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {"mode": "palette-classic"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 15},
+              {"color": "red", "value": 40}
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "text": {}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_llm_lemma_detection_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_llm_lemma_detection_seconds_count{outcome=\"success\"}[5m])",
+          "legendFormat": "Lemma Detection",
+          "refId": "A",
+          "instant": true
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_llm_inflections_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_llm_inflections_seconds_count{outcome=\"success\"}[5m])",
+          "legendFormat": "Inflection Generation",
+          "refId": "B",
+          "instant": true
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_llm_metadata_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_llm_metadata_seconds_count{outcome=\"success\"}[5m])",
+          "legendFormat": "Metadata Generation",
+          "refId": "C",
+          "instant": true
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(vocab_translation_google_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_translation_google_seconds_count{outcome=\"success\"}[5m])",
+          "legendFormat": "Google Translate",
+          "refId": "D",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Worst-Case Times (Max Observed)",
+      "description": "Maximum single-call duration seen since last backend restart",
+      "gridPos": {"h": 8, "w": 10, "x": 14, "y": 20},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 20},
+              {"color": "red", "value": 60}
+            ]
+          },
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_llm_lemma_detection_seconds_max{outcome=\"success\"}",
+          "legendFormat": "Lemma Detection",
+          "refId": "A",
+          "instant": true
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_llm_inflections_seconds_max{outcome=\"success\"}",
+          "legendFormat": "Inflections",
+          "refId": "B",
+          "instant": true
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_llm_metadata_seconds_max{outcome=\"success\"}",
+          "legendFormat": "Metadata",
+          "refId": "C",
+          "instant": true
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "vocab_translation_google_seconds_max{outcome=\"success\"}",
+          "legendFormat": "Google Translate",
+          "refId": "D",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "HTTP API Request Rate",
+      "description": "Requests per second to the vocabulary/lists/study API endpoints",
+      "gridPos": {"h": 7, "w": 12, "x": 0, "y": 28},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {"mode": "palette-classic"},
+          "custom": {"lineWidth": 1, "fillOpacity": 5, "spanNulls": true}
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {"mode": "multi", "sort": "desc"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(http_server_requests_seconds_count{uri=~\"/api/.*\"}[$__rate_interval])",
+          "legendFormat": "{{method}} {{uri}} {{status}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "HTTP API Latency (p50 average)",
+      "description": "Average response time for API requests",
+      "gridPos": {"h": 7, "w": 12, "x": 12, "y": 28},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {"mode": "palette-classic"},
+          "custom": {"lineWidth": 1, "fillOpacity": 5, "spanNulls": true}
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {"mode": "multi", "sort": "desc"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "rate(http_server_requests_seconds_sum{uri=~\"/api/.*\"}[$__rate_interval]) / rate(http_server_requests_seconds_count{uri=~\"/api/.*\"}[$__rate_interval])",
+          "legendFormat": "{{method}} {{uri}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "JVM Memory",
+      "description": "Heap and non-heap memory used by the Spring Boot backend",
+      "gridPos": {"h": 7, "w": 12, "x": 0, "y": 35},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {"mode": "palette-classic"},
+          "custom": {"lineWidth": 1, "fillOpacity": 10, "spanNulls": true}
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {"mode": "multi", "sort": "desc"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "jvm_memory_used_bytes{area=\"heap\"}",
+          "legendFormat": "Heap Used — {{id}}",
+          "refId": "A"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "jvm_memory_used_bytes{area=\"nonheap\"}",
+          "legendFormat": "Non-Heap — {{id}}",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "HikariCP — DB Connection Pool",
+      "description": "Active, idle, and pending database connections",
+      "gridPos": {"h": 7, "w": 12, "x": 12, "y": 35},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {"mode": "palette-classic"},
+          "custom": {"lineWidth": 1, "fillOpacity": 10, "spanNulls": true}
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {"mode": "multi", "sort": "desc"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "hikaricp_connections_active",
+          "legendFormat": "Active",
+          "refId": "A"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "hikaricp_connections_idle",
+          "legendFormat": "Idle",
+          "refId": "B"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "expr": "hikaricp_connections_pending",
+          "legendFormat": "Pending",
+          "refId": "C"
+        }
+      ]
+    }
+
+  ],
+
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["bulgarian-vocab"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource",
+        "label": "Datasource"
+      }
+    ]
+  },
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Bulgarian Vocabulary — Word Processing",
+  "uid": "bulgarian-vocab-processing",
+  "version": 1,
+  "weekStart": ""
+}

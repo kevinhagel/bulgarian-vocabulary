@@ -22,9 +22,9 @@ spring:
       chat:
         enabled: true
         options:
-          model: todorov/bggpt:9B-IT-v1.0.Q4_K_M  # Bulgarian-specific model for accurate morphology
+          model: bggpt-vocab  # Custom variant: 2048 ctx ceiling, q4_0 KV cache, faster inference
           temperature: 0.3
-          num-ctx: 4096
+          num-ctx: 2048
           num-gpu: 99
           num-thread: 14
 
