@@ -49,9 +49,9 @@ public class LemmaDetectionService {
      * @return CompletableFuture containing the lemma detection response
      */
     @Async("llmTaskExecutor")
-    public CompletableFuture<LemmaDetectionResponse> detectLemmaAsync(String wordForm) {
-        log.debug("Async lemma detection requested for: {}", wordForm);
-        LemmaDetectionResponse response = detectLemma(wordForm);
+    public CompletableFuture<LemmaDetectionResponse> detectLemmaAsync(String wordForm, String translationHint) {
+        log.debug("Async lemma detection requested for: {} (hint: {})", wordForm, translationHint);
+        LemmaDetectionResponse response = detectLemma(wordForm, translationHint);
         return CompletableFuture.completedFuture(response);
     }
 
@@ -59,18 +59,23 @@ public class LemmaDetectionService {
      * Synchronous lemma detection with caching and circuit breaker.
      * This method is called by the async wrapper to ensure proper cache behavior.
      *
-     * @param wordForm the inflected word form
+     * @param wordForm        the inflected word form
+     * @param translationHint optional English translation provided by the user for disambiguation
      * @return the lemma detection response
      */
-    @Cacheable(value = "lemmaDetection", key = "#wordForm.trim().toLowerCase()")
+    @Cacheable(value = "lemmaDetection", key = "#wordForm.trim().toLowerCase() + ':' + (#translationHint != null ? #translationHint.trim().toLowerCase() : '')")
     @CircuitBreaker(name = "ollama", fallbackMethod = "detectLemmaFallback")
-    LemmaDetectionResponse detectLemma(String wordForm) {
+    LemmaDetectionResponse detectLemma(String wordForm, String translationHint) {
         String normalizedWordForm = wordForm.trim().toLowerCase();
 
-        log.debug("Calling LLM for lemma detection: {}", normalizedWordForm);
+        log.debug("Calling LLM for lemma detection: {} (hint: {})", normalizedWordForm, translationHint);
+
+        String hintLine = (translationHint != null && !translationHint.isBlank())
+            ? String.format("\nIMPORTANT: The user says this word means \"%s\" in English. Use this to disambiguate if the word has multiple meanings.", translationHint)
+            : "";
 
         String prompt = String.format("""
-            Given the Bulgarian word "%s", identify its lemma (dictionary form).
+            Given the Bulgarian word "%s", identify its lemma (dictionary form).%s
             For verbs, the lemma is the 1st person singular present tense form.
             For nouns, the lemma is the singular indefinite form.
             For adjectives, the lemma is the masculine singular indefinite form.
@@ -82,7 +87,7 @@ public class LemmaDetectionService {
               "partOfSpeech": "VERB|NOUN|ADJECTIVE|etc",
               "detectionFailed": false
             }
-            """, normalizedWordForm);
+            """, normalizedWordForm, hintLine);
 
         Timer.Sample sample = Timer.start();
         try {
@@ -116,7 +121,7 @@ public class LemmaDetectionService {
      * Returns a failed detection response.
      */
     @SuppressWarnings("unused")
-    LemmaDetectionResponse detectLemmaFallback(String wordForm, Exception ex) {
+    LemmaDetectionResponse detectLemmaFallback(String wordForm, String translationHint, Exception ex) {
         log.warn("Circuit breaker activated for lemma detection of {}: {}", wordForm, ex.getMessage());
         return LemmaDetectionResponse.failed(wordForm);
     }

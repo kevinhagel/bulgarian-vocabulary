@@ -22,6 +22,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.time.Duration;
+import java.util.stream.Stream;
 
 /**
  * Service for background processing of vocabulary entries.
@@ -86,7 +87,8 @@ public class BackgroundProcessingService {
         logger.info("Background processing started — lemma ID: {}", lemmaId);
 
         // Short TX 1: fetch lemma, mark PROCESSING, release connection immediately
-        String userInput = txTemplate.execute(status -> {
+        record WordInput(String text, String translationHint) {}
+        WordInput wordInput = txTemplate.execute(status -> {
             Lemma lemma = lemmaRepository.findById(lemmaId).orElse(null);
             if (lemma == null) {
                 logger.error("Lemma ID {} not found, skipping processing", lemmaId);
@@ -94,10 +96,16 @@ public class BackgroundProcessingService {
             }
             lemma.setProcessingStatus(ProcessingStatus.PROCESSING);
             lemmaRepository.save(lemma);
-            return lemma.getText();
+            // Combine translation + notes into a single hint string for LLM disambiguation
+            String hint = Stream.of(lemma.getTranslation(), lemma.getNotes())
+                .filter(s -> s != null && !s.isBlank())
+                .collect(java.util.stream.Collectors.joining("; "));
+            return new WordInput(lemma.getText(), hint.isBlank() ? null : hint);
         });
 
-        if (userInput == null) return;
+        if (wordInput == null) return;
+        String userInput = wordInput.text();
+        String translationHint = wordInput.translationHint();
 
         // ── NO DB CONNECTION HELD BELOW THIS LINE DURING LLM CALLS ──
 
@@ -109,7 +117,7 @@ public class BackgroundProcessingService {
             // Step 1: LLM pipeline (lemma detection + inflections + metadata)
             Instant step1Start = Instant.now();
             logger.info("[1/5] LLM pipeline starting for input: '{}'", userInput);
-            result = llmOrchestrationService.processNewWord(userInput).get();
+            result = llmOrchestrationService.processNewWord(userInput, translationHint).get();
             logger.info("[1/5] LLM pipeline completed in {}ms", Duration.between(step1Start, Instant.now()).toMillis());
 
             if (result.lemmaDetection() == null || result.lemmaDetection().lemma() == null) {

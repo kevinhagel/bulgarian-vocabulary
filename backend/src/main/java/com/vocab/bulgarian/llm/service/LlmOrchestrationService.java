@@ -49,11 +49,11 @@ public class LlmOrchestrationService {
      * @param wordForm the Bulgarian word form to process
      * @return CompletableFuture containing the combined processing result
      */
-    public CompletableFuture<LlmProcessingResult> processNewWord(String wordForm) {
-        log.info("Processing new word: {}", wordForm);
+    public CompletableFuture<LlmProcessingResult> processNewWord(String wordForm, String translationHint) {
+        log.info("Processing new word: {} (hint: {})", wordForm, translationHint);
 
         // Step 1: Detect lemma
-        return lemmaDetectionService.detectLemmaAsync(wordForm)
+        return lemmaDetectionService.detectLemmaAsync(wordForm, translationHint)
             .thenCompose(lemmaDetection -> {
                 // Check if lemma detection failed
                 if (lemmaDetection.detectionFailed()) {
@@ -66,15 +66,23 @@ public class LlmOrchestrationService {
 
                 log.info("Lemma detected: {} for word form: {}", lemmaDetection.lemma(), wordForm);
 
-                // Step 2: Fan out to parallel inflection and metadata generation
+                // Step 2: Fan out to parallel inflection and metadata generation.
+                // If the user's hint explicitly names a part of speech, trust it over the LLM —
+                // the LLM can misidentify ambiguous homographs (e.g. пера = feathers vs. I wash).
+                String hintedPos = extractPartOfSpeechFromHint(translationHint);
+                String effectivePos = hintedPos != null ? hintedPos : lemmaDetection.partOfSpeech();
+                if (hintedPos != null) {
+                    log.info("POS overridden by user hint '{}': {} → {}", translationHint, lemmaDetection.partOfSpeech(), hintedPos);
+                }
+
                 CompletableFuture<InflectionSet> inflectionsFuture =
                     inflectionGenerationService.generateInflectionsAsync(
                         lemmaDetection.lemma(),
-                        lemmaDetection.partOfSpeech()
+                        effectivePos
                     );
 
                 CompletableFuture<LemmaMetadata> metadataFuture =
-                    metadataGenerationService.generateMetadataAsync(lemmaDetection.lemma());
+                    metadataGenerationService.generateMetadataAsync(lemmaDetection.lemma(), translationHint);
 
                 // Step 3: Combine results
                 return inflectionsFuture.thenCombine(metadataFuture, (inflections, metadata) -> {
@@ -118,5 +126,22 @@ public class LlmOrchestrationService {
                     warnings
                 );
             });
+    }
+
+    /**
+     * Extracts an explicit part of speech from the user's translation/notes hint.
+     * Used to override LLM misidentification of ambiguous homographs (e.g. пера = feathers vs. verb to wash).
+     */
+    private String extractPartOfSpeechFromHint(String hint) {
+        if (hint == null || hint.isBlank()) return null;
+        String lower = hint.toLowerCase();
+        if (lower.contains("verb"))        return "VERB";
+        if (lower.contains("noun"))        return "NOUN";
+        if (lower.contains("adjective"))   return "ADJECTIVE";
+        if (lower.contains("adverb"))      return "ADVERB";
+        if (lower.contains("pronoun"))     return "PRONOUN";
+        if (lower.contains("preposition")) return "PREPOSITION";
+        if (lower.contains("conjunction")) return "CONJUNCTION";
+        return null;
     }
 }
