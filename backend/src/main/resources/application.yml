@@ -6,6 +6,15 @@ spring:
     virtual:
       enabled: true  # Java 25 virtual threads for Tomcat and @Async executors
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid,email,profile
+
   servlet:
     encoding:
       charset: UTF-8
@@ -98,3 +107,11 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+# Trusted proxy headers (nginx terminates TLS and sets X-Forwarded-Proto)
+server:
+  forward-headers-strategy: native
+
+# Email allowlist for Google OAuth
+app:
+  allowed-emails: ${ALLOWED_EMAIL_KEVIN},${ALLOWED_EMAIL_HUW},${ALLOWED_EMAIL_ELENA:nobody@example.invalid}

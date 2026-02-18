@@ -106,8 +106,10 @@ bulgarian-vocabulary/                    ← Project root
 ## Network (Mac Studio)
 
 - IP: `192.168.1.10` (static via DHCP manual address)
-- Router forwards ports 5170–5179 → Mac Studio
-- Frontend externally accessible: `hagelbg.dyndns-ip.com:5173`
+- Router forwards ports 80, 443, 5170–5179 → Mac Studio
+- Frontend externally accessible: `https://hagelbg.dyndns-ip.com` (via nginx TLS termination)
+- nginx config: `/opt/homebrew/etc/nginx/servers/bulgarian-vocab.conf`
+- TLS cert: `/etc/letsencrypt/live/hagelbg.dyndns-ip.com/` (Let's Encrypt, auto-renews via cron)
 - Vite config: `host: 0.0.0.0`, allowedHosts includes DynDNS hostname
 
 ## Ollama Configuration
@@ -138,6 +140,21 @@ mvn flyway:info
 
 Ollama env vars are set in `~/Library/LaunchAgents/ollama-environment.plist` — do not set
 them in `.zshrc` only, as launchd won't see them.
+
+### Google OAuth2 env vars (required for backend startup)
+
+These must be exported before running `mvn spring-boot:run`:
+
+```bash
+export GOOGLE_CLIENT_ID='...'          # From Google Cloud Console
+export GOOGLE_CLIENT_SECRET='...'      # From Google Cloud Console
+export ALLOWED_EMAIL_KEVIN='...'       # kevin's Gmail address
+export ALLOWED_EMAIL_HUW='...'         # huw's Gmail address
+export ALLOWED_EMAIL_ELENA='...'       # elena's Gmail address
+```
+
+Google Console: https://console.cloud.google.com → APIs & Services → Credentials
+Redirect URI to register: `https://hagelbg.dyndns-ip.com/login/oauth2/code/google`
 
 ## Never Do This
 

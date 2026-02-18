@@ -21,7 +21,7 @@ export function CreateVocabularyModal() {
       setError(null);
       await createMutation.mutateAsync({
         wordForm: data.wordForm,
-        translation: data.translation,
+        translation: data.translation ?? '',
         notes: data.notes || undefined,
       });
       closeModal();

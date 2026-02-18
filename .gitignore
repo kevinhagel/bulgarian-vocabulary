@@ -16,6 +16,7 @@ node_modules/
 .env
 .env.local
 .env.production
+start-backend.sh
 
 # OS
 .DS_Store
