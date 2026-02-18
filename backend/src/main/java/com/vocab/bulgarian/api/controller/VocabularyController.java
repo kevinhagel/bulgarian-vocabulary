@@ -146,4 +146,51 @@ public class VocabularyController {
         LemmaDetailDTO dto = vocabularyService.updateReviewStatus(id, status);
         return ResponseEntity.ok(dto);
     }
+
+    /**
+     * Reprocess a vocabulary entry through the LLM pipeline.
+     * POST /api/vocabulary/{id}/reprocess
+     *
+     * @param id lemma ID
+     * @param request optional disambiguation hint
+     * @return 200 OK with updated detail DTO (status: QUEUED)
+     */
+    @PostMapping("/{id}/reprocess")
+    public ResponseEntity<LemmaDetailDTO> reprocessVocabulary(
+        @PathVariable Long id,
+        @RequestBody(required = false) ReprocessRequestDTO request
+    ) {
+        LemmaDetailDTO dto = vocabularyService.reprocessVocabulary(id, request);
+        return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Flag a vocabulary entry as needing correction.
+     * POST /api/vocabulary/{id}/flag
+     *
+     * @param id lemma ID
+     * @return 200 OK with updated detail DTO
+     */
+    @PostMapping("/{id}/flag")
+    public ResponseEntity<LemmaDetailDTO> flagVocabulary(@PathVariable Long id) {
+        LemmaDetailDTO dto = vocabularyService.flagVocabulary(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Get the review queue: user-entered words that are PENDING or NEEDS_CORRECTION.
+     * GET /api/vocabulary/review-queue
+     *
+     * @param page page number (default 0)
+     * @param size page size (default 20)
+     * @return 200 OK with paginated review queue
+     */
+    @GetMapping("/review-queue")
+    public ResponseEntity<Page<LemmaResponseDTO>> getReviewQueue(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        Page<LemmaResponseDTO> results = vocabularyService.getReviewQueue(PageRequest.of(page, size));
+        return ResponseEntity.ok(results);
+    }
 }

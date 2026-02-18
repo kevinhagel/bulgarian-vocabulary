@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { AudioPlayButton } from '@/components/audio/AudioPlayButton';
 import { InflectionsTable } from './InflectionsTable';
 import { LemmaSrsInfo } from './LemmaSrsInfo';
+import { ReprocessModal } from './ReprocessModal';
 import { useVocabularyDetail } from '../api/useVocabularyDetail';
 import { useVocabularyUIStore } from '../stores/useVocabularyUIStore';
+import { useFlagVocabulary } from '../api/useFlagVocabulary';
+import { useUpdateReviewStatus } from '../api/useUpdateReviewStatus';
 import type { PartOfSpeech, DifficultyLevel, ReviewStatus, Source } from '@/types';
 
 interface VocabularyDetailProps {
@@ -104,6 +108,9 @@ export function VocabularyDetail({ lemmaId, onBack }: VocabularyDetailProps) {
   const { data: lemma, isLoading, error, refetch } = useVocabularyDetail(lemmaId);
   const openEditModal = useVocabularyUIStore(state => state.openEditModal);
   const openDeleteConfirm = useVocabularyUIStore(state => state.openDeleteConfirm);
+  const [showReprocess, setShowReprocess] = useState(false);
+  const flagVocabulary = useFlagVocabulary();
+  const updateReviewStatus = useUpdateReviewStatus();
 
   // Loading state
   if (isLoading) {
@@ -254,28 +261,71 @@ export function VocabularyDetail({ lemmaId, onBack }: VocabularyDetailProps) {
         {lemma.source === 'USER_ENTERED' && <LemmaSrsInfo lemmaId={lemma.id} />}
 
         {/* Action buttons */}
-        <div className="flex gap-3 pt-6 border-t border-gray-200">
-          <button
-            onClick={() => openEditModal(lemma.id)}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <svg className="inline-block w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            Edit
-          </button>
-          <button
-            onClick={() => openDeleteConfirm(lemma.id)}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
-          >
-            <svg className="inline-block w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            Delete
-          </button>
+        <div className="pt-6 border-t border-gray-200 space-y-3">
+          {/* Primary actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => openEditModal(lemma.id)}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <svg className="inline-block w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Edit
+            </button>
+            <button
+              onClick={() => openDeleteConfirm(lemma.id)}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+            >
+              <svg className="inline-block w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              Delete
+            </button>
+          </div>
+
+          {/* Review / reprocess actions (user-entered words only) */}
+          {lemma.source === 'USER_ENTERED' && (
+            <div className="flex gap-3">
+              {(lemma.reviewStatus === 'PENDING' || lemma.reviewStatus === 'NEEDS_CORRECTION') && (
+                <button
+                  onClick={() => updateReviewStatus.mutate({ id: lemma.id, status: 'REVIEWED' })}
+                  disabled={updateReviewStatus.isPending}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-green-700 border border-green-300 bg-green-50 rounded-md hover:bg-green-100 transition-colors disabled:opacity-50"
+                >
+                  Mark Reviewed
+                </button>
+              )}
+              {lemma.reviewStatus === 'REVIEWED' && (
+                <button
+                  onClick={() => flagVocabulary.mutate(lemma.id)}
+                  disabled={flagVocabulary.isPending}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-orange-700 border border-orange-300 bg-orange-50 rounded-md hover:bg-orange-100 transition-colors disabled:opacity-50"
+                >
+                  Flag for Correction
+                </button>
+              )}
+              <button
+                onClick={() => setShowReprocess(true)}
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 bg-white rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Reprocess
+              </button>
+            </div>
+          )}
         </div>
+
+        {showReprocess && (
+          <ReprocessModal
+            lemmaId={lemma.id}
+            lemmaText={lemma.text}
+            currentNotes={lemma.notes}
+            onClose={() => setShowReprocess(false)}
+            onSuccess={() => refetch()}
+          />
+        )}
       </div>
     </div>
   );

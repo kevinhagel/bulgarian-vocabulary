@@ -5,6 +5,7 @@ import { VocabularyDetail } from '@/features/vocabulary/components/VocabularyDet
 import { CreateVocabularyModal } from '@/features/vocabulary/components/CreateVocabularyModal';
 import { EditVocabularyModal } from '@/features/vocabulary/components/EditVocabularyModal';
 import { DeleteConfirmDialog } from '@/features/vocabulary/components/DeleteConfirmDialog';
+import { ReviewQueueView } from '@/features/vocabulary/components/ReviewQueueView';
 import { useVocabularyUIStore } from '@/features/vocabulary/stores/useVocabularyUIStore';
 import { useAuth } from '@/features/auth/useAuth';
 import { LoginPage } from '@/features/auth/LoginPage';
@@ -19,7 +20,7 @@ import { ListsView } from '@/features/lists/components/ListsView';
 import { ListDetail } from '@/features/lists/components/ListDetail';
 import { AddVocabularyToList } from '@/features/lists/components/AddVocabularyToList';
 
-type AppView = 'vocabulary' | 'study' | 'lists';
+type AppView = 'vocabulary' | 'study' | 'lists' | 'review';
 
 function App() {
   const { data: user, isLoading } = useAuth();
@@ -29,6 +30,7 @@ function App() {
   const { phase: studyPhase } = useStudyStore();
   const { data: dueCount } = useDueCount();
   const totalDue = (dueCount?.dueToday ?? 0) + (dueCount?.newCards ?? 0);
+  const pendingReview = dueCount?.pendingReview ?? 0;
 
   const deletingLemmaId = useVocabularyUIStore(state => state.deletingLemmaId);
   const { selectedListId, clearSelection } = useListsUIStore();
@@ -97,6 +99,22 @@ function App() {
           >
             Lists
           </button>
+          <button
+            onClick={() => handleSwitchTab('review')}
+            className={`relative px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              appView === 'review'
+                ? 'border-yellow-500 text-yellow-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Review
+            {pendingReview > 0 && (
+              <span className="absolute -top-0.5 -right-1 inline-flex items-center justify-center w-4 h-4
+                               bg-yellow-500 text-white text-xs rounded-full font-bold leading-none">
+                {pendingReview > 9 ? '9+' : pendingReview}
+              </span>
+            )}
+          </button>
         </nav>
       </div>
 
@@ -114,7 +132,7 @@ function App() {
       {/* Study view */}
       {appView === 'study' && (
         <>
-          {studyPhase === 'idle' && <><StudyLauncher /><ProgressDashboard /></>}
+          {studyPhase === 'idle' && <><StudyLauncher onNavigateToReview={() => handleSwitchTab('review')} /><ProgressDashboard /></>}
           {studyPhase === 'active' && <FlashcardView />}
           {studyPhase === 'summary' && <SessionSummaryView />}
         </>
@@ -134,6 +152,16 @@ function App() {
             />
           )}
         </>
+      )}
+
+      {/* Review queue */}
+      {appView === 'review' && (
+        <ReviewQueueView
+          onViewDetail={id => {
+            setSelectedLemmaId(id);
+            handleSwitchTab('vocabulary');
+          }}
+        />
       )}
 
       {/* CRUD Modals */}

@@ -78,4 +78,9 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
     List<Lemma> findByIdInWithInflections(@Param("ids") List<Long> ids);
 
     long countBySource(Source source);
+
+    long countBySourceAndReviewStatusIn(Source source, List<ReviewStatus> statuses);
+
+    @Query("SELECT l FROM Lemma l WHERE l.source = com.vocab.bulgarian.domain.enums.Source.USER_ENTERED AND l.reviewStatus IN :statuses ORDER BY l.createdAt DESC")
+    Page<Lemma> findReviewQueue(@Param("statuses") List<ReviewStatus> statuses, Pageable pageable);
 }

@@ -18,7 +18,7 @@ public class StudyController {
 
     @PostMapping("/sessions")
     public ResponseEntity<StartSessionResponseDTO> startSession(
-        @RequestParam(defaultValue = "20") int maxCards
+        @RequestParam(defaultValue = "100") int maxCards
     ) {
         return ResponseEntity.ok(service.startSession(maxCards));
     }

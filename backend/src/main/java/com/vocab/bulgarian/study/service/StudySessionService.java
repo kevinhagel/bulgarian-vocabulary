@@ -1,6 +1,8 @@
 package com.vocab.bulgarian.study.service;
 
 import com.vocab.bulgarian.domain.Lemma;
+import com.vocab.bulgarian.domain.enums.ReviewStatus;
+import com.vocab.bulgarian.domain.enums.Source;
 import com.vocab.bulgarian.repository.LemmaRepository;
 import com.vocab.bulgarian.study.domain.*;
 import com.vocab.bulgarian.study.domain.enums.ReviewRating;
@@ -24,6 +26,7 @@ public class StudySessionService {
 
     private static final Logger log = LoggerFactory.getLogger(StudySessionService.class);
     private static final int MAX_NEW_CARDS_PER_SESSION = 10;
+    private static final int MAX_OVERDUE_CARDS_PER_SESSION = 20;
 
     private final StudySessionRepository sessionRepo;
     private final SessionCardRepository cardRepo;
@@ -49,9 +52,10 @@ public class StudySessionService {
     }
 
     public StartSessionResponseDTO startSession(int maxCards) {
-        // Collect due cards
+        // Collect due cards (REVIEWED only), capped to prevent "snowball" after missed days
         List<Long> dueLemmaIds = srsRepo.findDueCards(LocalDate.now())
-            .stream().map(s -> s.getLemma().getId()).toList();
+            .stream().map(s -> s.getLemma().getId())
+            .limit(MAX_OVERDUE_CARDS_PER_SESSION).toList();
 
         // Collect new cards (no SrsState yet), capped
         List<Long> newLemmaIds = srsRepo.findLemmaIdsWithoutSrsState()
@@ -187,7 +191,11 @@ public class StudySessionService {
     public DueCountDTO getDueCount() {
         long dueToday = srsRepo.countDueCards(LocalDate.now());
         long newCards = srsRepo.findLemmaIdsWithoutSrsState().size();
-        return new DueCountDTO(dueToday, newCards);
+        long pendingReview = lemmaRepo.countBySourceAndReviewStatusIn(
+            Source.USER_ENTERED,
+            List.of(ReviewStatus.PENDING, ReviewStatus.NEEDS_CORRECTION)
+        );
+        return new DueCountDTO(dueToday, newCards, pendingReview);
     }
 
     private Optional<SessionCard> findFirstUnreviewed(Long sessionId) {

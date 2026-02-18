@@ -209,4 +209,79 @@ public class VocabularyService {
                 .orElseThrow(() -> new EntityNotFoundException("Lemma not found with id: " + id))
         );
     }
+
+    /**
+     * Reprocess a vocabulary entry through the LLM pipeline.
+     * Clears existing inflections, resets processing status, and appends
+     * an optional disambiguation hint to the notes before re-queuing.
+     *
+     * @param id lemma ID
+     * @param request optional hint to help the LLM disambiguate
+     * @return updated lemma detail DTO (status: QUEUED)
+     * @throws EntityNotFoundException if lemma not found
+     */
+    @Transactional
+    public LemmaDetailDTO reprocessVocabulary(Long id, ReprocessRequestDTO request) {
+        Lemma lemma = lemmaRepository.findByIdWithInflections(id)
+            .orElseThrow(() -> new EntityNotFoundException("Lemma not found with id: " + id));
+
+        // Append hint to notes so background processor sees it
+        if (request != null && request.hint() != null && !request.hint().isBlank()) {
+            String existing = lemma.getNotes() != null ? lemma.getNotes().trim() : "";
+            String appended = existing.isEmpty()
+                ? request.hint().trim()
+                : existing + "; " + request.hint().trim();
+            lemma.setNotes(appended);
+        }
+
+        lemma.getInflections().clear();
+        lemma.setProcessingStatus(ProcessingStatus.QUEUED);
+        lemma.setProcessingError(null);
+        lemma.setReviewStatus(ReviewStatus.PENDING);
+
+        Lemma saved = lemmaRepository.save(lemma);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                backgroundProcessingService.processLemma(saved.getId());
+            }
+        });
+
+        return lemmaMapper.toDetailDTO(saved);
+    }
+
+    /**
+     * Flag a vocabulary entry as needing correction.
+     * Sets review status to NEEDS_CORRECTION so it appears in the review queue.
+     *
+     * @param id lemma ID
+     * @return updated lemma detail DTO
+     * @throws EntityNotFoundException if lemma not found
+     */
+    @Transactional
+    public LemmaDetailDTO flagVocabulary(Long id) {
+        Lemma lemma = lemmaRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Lemma not found with id: " + id));
+
+        lemma.setReviewStatus(ReviewStatus.NEEDS_CORRECTION);
+        lemmaRepository.save(lemma);
+
+        return lemmaMapper.toDetailDTO(
+            lemmaRepository.findByIdWithInflections(id)
+                .orElseThrow(() -> new EntityNotFoundException("Lemma not found with id: " + id))
+        );
+    }
+
+    /**
+     * Get the review queue: all user-entered words that are PENDING or NEEDS_CORRECTION.
+     *
+     * @param pageable pagination parameters
+     * @return page of lemma summary DTOs needing review
+     */
+    public Page<LemmaResponseDTO> getReviewQueue(Pageable pageable) {
+        List<ReviewStatus> statuses = List.of(ReviewStatus.PENDING, ReviewStatus.NEEDS_CORRECTION);
+        return lemmaRepository.findReviewQueue(statuses, pageable)
+            .map(lemmaMapper::toResponseDTO);
+    }
 }

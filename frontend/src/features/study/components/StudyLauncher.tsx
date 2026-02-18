@@ -2,17 +2,22 @@ import { useStudyStore } from '@/features/study/stores/useStudyStore';
 import { useStartSession } from '@/features/study/api/useStartSession';
 import { useDueCount } from '@/features/study/api/useDueCount';
 
-export function StudyLauncher() {
+interface StudyLauncherProps {
+  onNavigateToReview?: () => void;
+}
+
+export function StudyLauncher({ onNavigateToReview }: StudyLauncherProps) {
   const { startSession } = useStudyStore();
   const startMutation = useStartSession();
   const { data: dueCount } = useDueCount();
 
   const dueToday = dueCount?.dueToday ?? 0;
   const newCards = dueCount?.newCards ?? 0;
+  const pendingReview = dueCount?.pendingReview ?? 0;
   const total = dueToday + newCards;
 
   const handleStart = async () => {
-    const result = await startMutation.mutateAsync({ maxCards: 20 });
+    const result = await startMutation.mutateAsync({ maxCards: 100 });
     startSession(result.sessionId, result.cardCount, result.firstCard);
   };
 
@@ -24,7 +29,24 @@ export function StudyLauncher() {
         <div className="text-gray-500 py-4">
           <p className="font-medium">All caught up!</p>
           <p className="text-sm mt-1 text-gray-400">No cards due for review today.</p>
-          <p className="text-sm mt-1 text-gray-400">Check back tomorrow or add more vocabulary.</p>
+          {pendingReview > 0 ? (
+            <p className="text-sm mt-2 text-yellow-700">
+              {pendingReview} word{pendingReview !== 1 ? 's' : ''} waiting for review —{' '}
+              {onNavigateToReview ? (
+                <button
+                  onClick={onNavigateToReview}
+                  className="underline hover:text-yellow-800 transition-colors"
+                >
+                  go to Review tab
+                </button>
+              ) : (
+                'check the Review tab'
+              )}{' '}
+              to approve them for study.
+            </p>
+          ) : (
+            <p className="text-sm mt-1 text-gray-400">Check back tomorrow or add more vocabulary.</p>
+          )}
         </div>
       ) : (
         <div className="mb-6">

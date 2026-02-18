@@ -30,6 +30,7 @@ export interface SessionSummaryDTO {
 export interface DueCountDTO {
   dueToday: number;
   newCards: number;
+  pendingReview: number;
 }
 
 export interface ProgressDashboardDTO {
