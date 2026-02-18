@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: optional:file:./secrets.properties
+
   docker:
     compose:
       enabled: false  # Docker runs on Mac Studio, not auto-managed
