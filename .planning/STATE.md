@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Each vocabulary entry must accurately represent the lemma (dictionary headword) with all its inflections, English translation, and metadata, enabling effective study through audio playback and interactive learning tools.
-**Current focus:** Phase 7 - ready to plan
+**Current focus:** All phases complete — application in active use
 
 ## Current Position
 
-Phase: 7 of 8 (next phase) - Phase 6 complete
-Plan: Phase 6 complete (4/4 plans executed)
-Status: Ready to plan Phase 7
-Last activity: 2026-02-17 — Phase 6 complete (SRS backend, flashcard UI, progress dashboard, polish)
+Phase: 8 of 8 — ALL PHASES COMPLETE
+Plan: Phase 8 complete (1/1 plan executed)
+Status: Production-ready, in active use
+Last activity: 2026-02-18 — Phase 8 complete (review queue, REVIEWED gate, reprocess/flag, V7 migration)
 
-Progress: [██████████████████] 75%
+Progress: [████████████████████████] 100%
 
 ## Performance Metrics
 
@@ -114,22 +114,35 @@ Recent decisions affecting current work:
 - [Phase 05 P03]: Use single VocabularyForm component for both create and edit modes (reduces duplication)
 - [Phase 05 P03]: Show LLM processing indicator during create mutation (async backend processing)
 - [Phase 05 P03]: Types barrel exports (@/types) created for cleaner imports and consistency
+- [Phase 06]: SM-2 spaced repetition algorithm with srs_state, study_sessions, session_cards tables (V5 migration)
+- [Phase 06]: FlashcardView with audio playback, correct/incorrect rating, session progress and summary
+- [Phase 06]: ProgressDashboard and per-lemma LemmaSrsInfo with retention rate, interval, ease factor
+- [Phase 07]: WordList entity with many-to-many lemma association (V6 migration); list CRUD + list-specific study sessions
+- [Phase 07]: Lists tab with ListsView, ListDetail, AddVocabularyToList; study session scoped to list
+- [Phase 07]: Micrometer metrics + Prometheus/Grafana monitoring; StartupReprocessingService for stuck QUEUED lemmas
+- [Phase 07]: Google OAuth2 with email allowlist (ALLOWED_EMAIL_KEVIN/HUW/ELENA); nginx TLS via Let's Encrypt
+- [Phase 08]: V7 migration marks all SYSTEM_SEED lemmas as REVIEWED
+- [Phase 08]: REVIEWED gate on SRS queries — only REVIEWED words enter study sessions
+- [Phase 08]: MAX_OVERDUE_CARDS_PER_SESSION=20 cap prevents review snowball after missed days
+- [Phase 08]: Review queue tab (PENDING + NEEDS_CORRECTION); yellow badge with pendingReview count
+- [Phase 08]: Reprocess endpoint clears inflections, re-queues LLM pipeline with optional disambiguation hint
+- [Phase 08]: Flag endpoint sets reviewStatus=NEEDS_CORRECTION for human correction workflow
+- [Phase 08]: DueCountDTO.pendingReview field; StudyLauncher shows "go to Review tab" when queue non-empty
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (planning)
-Stopped at: Phase 6 planning complete — 4 plans written
-Resume file: .planning/phases/06-flashcards-basic-study/06-01-PLAN.md
-Next action: Execute 06-01-PLAN.md (V5 migration, SRS entities, SM-2 algorithm, study session API)
+Last session: 2026-02-18
+Stopped at: All 8 phases complete — application in active use with 21 reviewed vocabulary words
+Next action: Feature requests or new phases as needed
 
 ---
 *State initialized: 2026-02-15*
-*Last updated: 2026-02-16 (Plan 05-03 complete)*
+*Last updated: 2026-02-18 (Phase 8 complete — all phases done)*

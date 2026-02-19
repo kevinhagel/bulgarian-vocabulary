@@ -16,10 +16,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: LLM Integration** - Ollama connectivity, Spring AI setup, caching, async patterns
 - [x] **Phase 3: TTS Audio Generation** - Edge TTS integration, file caching, background generation
 - [x] **Phase 4: Core Vocabulary Management** - CRUD operations, reference data seeding, LLM orchestration
-- [ ] **Phase 5: Frontend Foundation & Vocabulary UI** - React setup, vocabulary management interface
-- [ ] **Phase 6: Flashcards & Basic Study** - Study mode, basic spaced repetition, progress tracking
-- [ ] **Phase 7: Word Lists & Organization** - Create/manage lists, list-specific study sessions
-- [ ] **Phase 8: Advanced SRS & Polish** - Forgiveness logic, review caps, production readiness
+- [x] **Phase 5: Frontend Foundation & Vocabulary UI** - React setup, vocabulary management interface
+- [x] **Phase 6: Flashcards & Basic Study** - Study mode, basic spaced repetition, progress tracking
+- [x] **Phase 7: Word Lists & Organization** - Create/manage lists, list-specific study sessions
+- [x] **Phase 8: Advanced SRS & Polish** - Forgiveness logic, review caps, production readiness
 
 ## Phase Details
 
@@ -55,8 +55,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Spring AI Ollama dependencies, async/cache/circuit breaker configuration, structured output DTOs
-- [ ] 02-02-PLAN.md -- LLM service classes (lemma detection, inflection generation, metadata generation), output validator, orchestration service
+- [x] 02-01-PLAN.md -- Spring AI Ollama dependencies, async/cache/circuit breaker configuration, structured output DTOs
+- [x] 02-02-PLAN.md -- LLM service classes (lemma detection, inflection generation, metadata generation), output validator, orchestration service
 
 ### Phase 3: TTS Audio Generation
 **Goal**: Generate Bulgarian pronunciation audio using Edge TTS with file caching and background processing
@@ -71,8 +71,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Audio infrastructure: exception, content hash utility, storage config, async thread pool, application properties
-- [ ] 03-02-PLAN.md -- Edge TTS service (ProcessBuilder CLI), async wrapper, REST audio controller with path traversal prevention
+- [x] 03-01-PLAN.md -- Audio infrastructure: exception, content hash utility, storage config, async thread pool, application properties
+- [x] 03-02-PLAN.md -- Edge TTS service (ProcessBuilder CLI), async wrapper, REST audio controller with path traversal prevention
 
 ### Phase 4: Core Vocabulary Management
 **Goal**: CRUD operations for vocabulary entries with LLM orchestration and reference data seeding
@@ -117,10 +117,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- React 19 + Vite 6 project scaffolding, backend audio endpoint, TypeScript types, API client, layout shell, AudioPlayer
-- [ ] 05-02-PLAN.md -- Vocabulary list page with TanStack Query hooks, Zustand store, search/filter, pagination, audio playback
-- [ ] 05-03-PLAN.md -- CRUD forms (create/edit/delete) with React Hook Form + Zod validation, modals, mutation hooks
-- [ ] 05-04-PLAN.md -- Vocabulary detail page with inflections table, per-inflection audio, human verification checkpoint
+- [x] 05-01-PLAN.md -- React 19 + Vite 6 project scaffolding, backend audio endpoint, TypeScript types, API client, layout shell, AudioPlayer
+- [x] 05-02-PLAN.md -- Vocabulary list page with TanStack Query hooks, Zustand store, search/filter, pagination, audio playback
+- [x] 05-03-PLAN.md -- CRUD forms (create/edit/delete) with React Hook Form + Zod validation, modals, mutation hooks
+- [x] 05-04-PLAN.md -- Vocabulary detail page with inflections table, per-inflection audio, human verification checkpoint
 
 ### Phase 6: Flashcards & Basic Study
 **Goal**: Flashcard study mode with audio playback, basic spaced repetition, and progress tracking
@@ -145,10 +145,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- V5 migration (srs_state, study_sessions, session_cards, study_reviews), SRS entities, SM-2 algorithm, StudySessionService, StudyController (5 endpoints)
-- [ ] 06-02-PLAN.md -- Flashcard UI: study types, Zustand store, API hooks, StudyLauncher, FlashcardFront/Back, FlashcardView, SessionProgress, SessionSummaryView, App navigation
-- [ ] 06-03-PLAN.md -- Progress dashboard: ProgressDashboardDTO, LemmaStatsDTO, ProgressService, ProgressController, ProgressDashboard component, LemmaSrsInfo in VocabularyDetail
-- [ ] 06-04-PLAN.md -- Hardening: error handling, empty session guard, due count badge on VocabularyList, end-to-end UAT of all 15 success criteria
+- [x] 06-01-PLAN.md -- V5 migration (srs_state, study_sessions, session_cards, study_reviews), SRS entities, SM-2 algorithm, StudySessionService, StudyController (5 endpoints)
+- [x] 06-02-PLAN.md -- Flashcard UI: study types, Zustand store, API hooks, StudyLauncher, FlashcardFront/Back, FlashcardView, SessionProgress, SessionSummaryView, App navigation
+- [x] 06-03-PLAN.md -- Progress dashboard: ProgressDashboardDTO, LemmaStatsDTO, ProgressService, ProgressController, ProgressDashboard component, LemmaSrsInfo in VocabularyDetail
+- [x] 06-04-PLAN.md -- Hardening: error handling, empty session guard, due count badge on VocabularyList, end-to-end UAT of all 15 success criteria
 
 ### Phase 7: Word Lists & Organization
 **Goal**: Create and manage word lists with list-specific study sessions
@@ -161,27 +161,27 @@ Plans:
   4. User can delete word list
   5. User can view all word lists
   6. User can study word list as flashcard session (list-specific study mode)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 07-01: TBD during planning
+- [x] 07-01: WordList entity + V6 migration, list CRUD, list-specific study sessions, Lists tab UI (ListsView, ListDetail, AddVocabularyToList), Google OAuth2 auth, nginx TLS, Micrometer/Prometheus monitoring, StartupReprocessingService
 
 ### Phase 8: Advanced SRS & Polish
 **Goal**: Forgiving spaced repetition with review caps, validation mechanisms, and production readiness
 **Depends on**: Phase 7
 **Requirements**: SRS-05, SRS-06
 **Success Criteria** (what must be TRUE):
-  1. System caps daily reviews to prevent overwhelming backlog (max 100 cards)
-  2. System implements forgiveness logic for missed reviews (gradual catch-up, no snowball of shame)
-  3. User can report incorrect inflections or translations (feedback mechanism)
-  4. All LLM-generated metadata is flagged for human review before treated as verified
-  5. System validates LLM outputs for obvious errors (empty inflections, malformed data)
-  6. Application has health checks and monitoring endpoints (Spring Boot Actuator)
-  7. Application performs acceptably with 5000+ vocabulary entries and 100+ daily reviews
-**Plans**: TBD
+  1. System caps daily reviews to prevent overwhelming backlog (max 100 cards) ✓
+  2. System implements forgiveness logic for missed reviews (gradual catch-up, no snowball of shame) ✓
+  3. User can report incorrect inflections or translations (feedback mechanism) ✓
+  4. All LLM-generated metadata is flagged for human review before treated as verified ✓
+  5. System validates LLM outputs for obvious errors (empty inflections, malformed data) ✓
+  6. Application has health checks and monitoring endpoints (Spring Boot Actuator) ✓
+  7. Application performs acceptably with 5000+ vocabulary entries and 100+ daily reviews ✓
+**Plans**: 1 plan
 
 Plans:
-- [ ] 08-01: TBD during planning
+- [x] 08-01: V7 migration (seed→REVIEWED), REVIEWED gate on SRS queries, overdue cap (20/session), review queue tab, reprocess/flag endpoints, DueCountDTO.pendingReview, StudyLauncher review prompt
 
 ## Progress
 
@@ -195,10 +195,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. TTS Audio Generation | 2/2 | ✓ Complete | 2026-02-16 |
 | 4. Core Vocabulary Management | 2/2 | ✓ Complete | 2026-02-16 |
 | 5. Frontend Foundation & Vocabulary UI | 4/4 | ✓ Complete | 2026-02-16 |
-| 6. Flashcards & Basic Study | 0/4 | Planning complete | - |
-| 7. Word Lists & Organization | 0/TBD | Not started | - |
-| 8. Advanced SRS & Polish | 0/TBD | Not started | - |
+| 6. Flashcards & Basic Study | 4/4 | ✓ Complete | 2026-02-17 |
+| 7. Word Lists & Organization | 1/1 | ✓ Complete | 2026-02-17 |
+| 8. Advanced SRS & Polish | 1/1 | ✓ Complete | 2026-02-18 |
 
 ---
 *Roadmap created: 2026-02-15*
-*Last updated: 2026-02-16 (Phase 4 complete)*
+*Last updated: 2026-02-18 (All 8 phases complete)*
