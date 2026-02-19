@@ -162,7 +162,7 @@ Redirect URI: `https://hagelbg.dyndns-ip.com/login/oauth2/code/google`
 - **Auto-unseal**: `~/Library/LaunchAgents/vault-unseal.plist` (runs every 30s, reads `~/.vault-unseal-key`)
 - **Config**: `/opt/homebrew/etc/vault/config.hcl` (file storage, 127.0.0.1:8200)
 - **UI**: http://localhost:8200/ui
-- **Token**: stored in `backend/secrets.properties` (gitignored)
+- **Token**: stored in `~/.vault-token` (written by `vault login <token>`)
 - **Unseal key**: `~/.vault-unseal-key` (chmod 600) — also in Dashlane
 
 ```bash
