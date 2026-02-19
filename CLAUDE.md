@@ -50,8 +50,9 @@ mvn flyway:info           # Check migration status
 **Run Spring Boot backend:**
 ```bash
 cd ~/bulgarian-vocabulary/backend
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-# No POSTGRES_PASSWORD export needed — DB volume was initialized with password from .env
+mvn spring-boot:run
+# No env var exports needed — secrets come from Vault (auto-managed by launchd)
+# Vault must be running and unsealed; check with: vault status
 ```
 
 **Run React frontend (Phase 5+):**
@@ -141,20 +142,33 @@ mvn flyway:info
 Ollama env vars are set in `~/Library/LaunchAgents/ollama-environment.plist` — do not set
 them in `.zshrc` only, as launchd won't see them.
 
-### Google OAuth2 env vars (required for backend startup)
+### Google OAuth2 secrets — now in Vault
 
-These must be exported before running `mvn spring-boot:run`:
+Google OAuth2 secrets are stored in Vault (`secret/bulgarian-vocabulary`) and loaded
+automatically at startup. No manual exports needed.
 
-```bash
-export GOOGLE_CLIENT_ID='...'          # From Google Cloud Console
-export GOOGLE_CLIENT_SECRET='...'      # From Google Cloud Console
-export ALLOWED_EMAIL_KEVIN='...'       # kevin's Gmail address
-export ALLOWED_EMAIL_HUW='...'         # huw's Gmail address
-export ALLOWED_EMAIL_ELENA='...'       # elena's Gmail address
-```
+**Vault path**: `secret/bulgarian-vocabulary`
+**Keys**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ALLOWED_EMAIL_KEVIN`, `ALLOWED_EMAIL_HUW`, `ALLOWED_EMAIL_ELENA`
+
+To inspect: `vault kv get secret/bulgarian-vocabulary`
+To update: `vault kv patch secret/bulgarian-vocabulary KEY=VALUE`
 
 Google Console: https://console.cloud.google.com → APIs & Services → Credentials
-Redirect URI to register: `https://hagelbg.dyndns-ip.com/login/oauth2/code/google`
+Redirect URI: `https://hagelbg.dyndns-ip.com/login/oauth2/code/google`
+
+### Vault
+
+- **Server**: auto-starts via `~/Library/LaunchAgents/vault.plist` (launchd, KeepAlive)
+- **Auto-unseal**: `~/Library/LaunchAgents/vault-unseal.plist` (runs every 30s, reads `~/.vault-unseal-key`)
+- **Config**: `/opt/homebrew/etc/vault/config.hcl` (file storage, 127.0.0.1:8200)
+- **UI**: http://localhost:8200/ui
+- **Token**: stored in `backend/secrets.properties` (gitignored)
+- **Unseal key**: `~/.vault-unseal-key` (chmod 600) — also in Dashlane
+
+```bash
+vault status                             # Check sealed/unsealed
+vault kv get secret/bulgarian-vocabulary # Inspect secrets
+```
 
 ## Never Do This
 

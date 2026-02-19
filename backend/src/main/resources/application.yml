@@ -5,6 +5,23 @@ spring:
   profiles:
     active: dev
 
+  config:
+    import:
+      - optional:secrets.properties
+      - optional:vault://
+
+  cloud:
+    vault:
+      host: localhost
+      port: 8200
+      scheme: http
+      authentication: TOKEN
+      token: ${spring.cloud.vault.token:}
+      kv:
+        enabled: true
+        backend: secret
+        default-context: bulgarian-vocabulary
+
   threads:
     virtual:
       enabled: true  # Java 25 virtual threads for Tomcat and @Async executors
