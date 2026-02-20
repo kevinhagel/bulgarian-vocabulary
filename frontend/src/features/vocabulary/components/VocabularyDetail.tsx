@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AudioPlayButton } from '@/components/audio/AudioPlayButton';
 import { InflectionsTable } from './InflectionsTable';
+import { ExampleSentencesSection } from './ExampleSentencesSection';
 import { LemmaSrsInfo } from './LemmaSrsInfo';
 import { ReprocessModal } from './ReprocessModal';
 import { useVocabularyDetail } from '../api/useVocabularyDetail';
@@ -256,6 +257,9 @@ export function VocabularyDetail({ lemmaId, onBack }: VocabularyDetailProps) {
           </h2>
           <InflectionsTable inflections={lemma.inflections} partOfSpeech={lemma.partOfSpeech} />
         </div>
+
+        {/* Example sentences */}
+        <ExampleSentencesSection lemma={lemma} onUpdated={refetch} />
 
         {/* SRS study statistics for user-entered lemmas */}
         {lemma.source === 'USER_ENTERED' && <LemmaSrsInfo lemmaId={lemma.id} />}

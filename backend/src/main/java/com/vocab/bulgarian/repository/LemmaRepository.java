@@ -5,6 +5,7 @@ import com.vocab.bulgarian.domain.enums.DifficultyLevel;
 import com.vocab.bulgarian.domain.enums.PartOfSpeech;
 import com.vocab.bulgarian.domain.enums.ProcessingStatus;
 import com.vocab.bulgarian.domain.enums.ReviewStatus;
+import com.vocab.bulgarian.domain.enums.SentenceStatus;
 import com.vocab.bulgarian.domain.enums.Source;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,6 +79,13 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
     List<Lemma> findByIdInWithInflections(@Param("ids") List<Long> ids);
 
     long countBySource(Source source);
+
+    long countBySentenceStatus(SentenceStatus sentenceStatus);
+
+    @Query("SELECT l FROM Lemma l WHERE l.sentenceStatus = com.vocab.bulgarian.domain.enums.SentenceStatus.NONE " +
+           "AND l.processingStatus = com.vocab.bulgarian.domain.enums.ProcessingStatus.COMPLETED " +
+           "ORDER BY l.createdAt ASC")
+    List<Lemma> findLemmasNeedingSentences(Pageable pageable);
 
     long countBySourceAndReviewStatusIn(Source source, List<ReviewStatus> statuses);
 

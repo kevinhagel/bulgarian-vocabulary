@@ -1,6 +1,7 @@
 package com.vocab.bulgarian.api.mapper;
 
 import com.vocab.bulgarian.api.dto.*;
+import com.vocab.bulgarian.domain.ExampleSentence;
 import com.vocab.bulgarian.domain.Inflection;
 import com.vocab.bulgarian.domain.Lemma;
 import com.vocab.bulgarian.domain.enums.DifficultyLevel;
@@ -34,6 +35,11 @@ public interface LemmaMapper {
      * Convert Inflection entity to DTO.
      */
     InflectionDTO toInflectionDTO(Inflection inflection);
+
+    /**
+     * Convert ExampleSentence entity to DTO.
+     */
+    ExampleSentenceDTO toExampleSentenceDTO(ExampleSentence sentence);
 
     /**
      * Create new Lemma entity from CreateLemmaRequestDTO and LlmProcessingResult.

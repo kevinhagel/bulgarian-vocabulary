@@ -4,6 +4,7 @@ import com.vocab.bulgarian.domain.enums.DifficultyLevel;
 import com.vocab.bulgarian.domain.enums.PartOfSpeech;
 import com.vocab.bulgarian.domain.enums.ProcessingStatus;
 import com.vocab.bulgarian.domain.enums.ReviewStatus;
+import com.vocab.bulgarian.domain.enums.SentenceStatus;
 import com.vocab.bulgarian.domain.enums.Source;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -81,6 +82,19 @@ public class Lemma {
     )
     private List<Inflection> inflections = new ArrayList<>();
 
+    @OneToMany(
+        mappedBy = "lemma",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    @OrderBy("sortOrder ASC")
+    private List<ExampleSentence> exampleSentences = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sentence_status", nullable = false, length = 20)
+    private SentenceStatus sentenceStatus = SentenceStatus.NONE;
+
     // Lifecycle callbacks
     @PrePersist
     protected void onCreate() {
@@ -108,6 +122,16 @@ public class Lemma {
     public void removeInflection(Inflection inflection) {
         inflections.remove(inflection);
         inflection.setLemma(null);
+    }
+
+    public void addExampleSentence(ExampleSentence sentence) {
+        exampleSentences.add(sentence);
+        sentence.setLemma(this);
+    }
+
+    public void removeExampleSentence(ExampleSentence sentence) {
+        exampleSentences.remove(sentence);
+        sentence.setLemma(null);
     }
 
     // equals and hashCode based on id (null-safe for new entities)
@@ -235,5 +259,21 @@ public class Lemma {
 
     public void setProcessingError(String processingError) {
         this.processingError = processingError;
+    }
+
+    public List<ExampleSentence> getExampleSentences() {
+        return exampleSentences;
+    }
+
+    public void setExampleSentences(List<ExampleSentence> exampleSentences) {
+        this.exampleSentences = exampleSentences;
+    }
+
+    public SentenceStatus getSentenceStatus() {
+        return sentenceStatus;
+    }
+
+    public void setSentenceStatus(SentenceStatus sentenceStatus) {
+        this.sentenceStatus = sentenceStatus;
     }
 }

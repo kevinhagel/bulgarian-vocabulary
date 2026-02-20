@@ -22,6 +22,15 @@ export type InflectionDifficulty = 'BASIC' | 'INTERMEDIATE' | 'ADVANCED';
 
 export type ReviewStatus = 'PENDING' | 'REVIEWED' | 'NEEDS_CORRECTION';
 
+export type SentenceStatus = 'NONE' | 'QUEUED' | 'GENERATING' | 'DONE' | 'FAILED';
+
+export interface ExampleSentenceDTO {
+  id: number;
+  bulgarianText: string;
+  englishTranslation: string;
+  sortOrder: number;
+}
+
 // DTOs
 export interface InflectionDTO {
   id: number;
@@ -41,6 +50,7 @@ export interface LemmaResponseDTO {
   source: Source;
   reviewStatus: ReviewStatus;
   inflectionCount: number;
+  sentenceStatus: SentenceStatus;
   createdAt: string;
 }
 
@@ -55,6 +65,8 @@ export interface LemmaDetailDTO {
   source: Source;
   reviewStatus: ReviewStatus;
   inflections: InflectionDTO[];
+  exampleSentences: ExampleSentenceDTO[];
+  sentenceStatus: SentenceStatus;
   createdAt: string;
   updatedAt: string;
 }

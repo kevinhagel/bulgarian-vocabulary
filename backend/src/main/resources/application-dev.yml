@@ -25,13 +25,18 @@ spring:
           num-gpu: 99
           num-thread: 14
 
-# Dev-friendly circuit breaker: shorter wait, smaller window
+# Dev-friendly circuit breakers: shorter wait, smaller window
 resilience4j:
   circuitbreaker:
     instances:
       ollama:
         wait-duration-in-open-state: 10s
         sliding-window-size: 5
+        minimum-number-of-calls: 3
+      ollama-sentence:
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 5
+        failure-rate-threshold: 60
         minimum-number-of-calls: 3
 
 # Audio storage on external SSD (Mac Studio - T9 has 3.6TB vs T7s 1.8TB)

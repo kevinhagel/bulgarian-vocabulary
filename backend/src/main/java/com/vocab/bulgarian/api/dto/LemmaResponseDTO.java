@@ -3,6 +3,7 @@ package com.vocab.bulgarian.api.dto;
 import com.vocab.bulgarian.domain.enums.DifficultyLevel;
 import com.vocab.bulgarian.domain.enums.PartOfSpeech;
 import com.vocab.bulgarian.domain.enums.ReviewStatus;
+import com.vocab.bulgarian.domain.enums.SentenceStatus;
 import com.vocab.bulgarian.domain.enums.Source;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ public record LemmaResponseDTO(
     Source source,
     ReviewStatus reviewStatus,
     int inflectionCount,
+    SentenceStatus sentenceStatus,
     LocalDateTime createdAt
 ) {
 }

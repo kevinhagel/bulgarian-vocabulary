@@ -5,6 +5,7 @@ import com.vocab.bulgarian.domain.enums.PartOfSpeech;
 import com.vocab.bulgarian.llm.dto.InflectionSet;
 import com.vocab.bulgarian.llm.dto.LemmaDetectionResponse;
 import com.vocab.bulgarian.llm.dto.LemmaMetadata;
+import com.vocab.bulgarian.llm.dto.SentenceSet;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.stereotype.Component;
@@ -157,6 +158,41 @@ public class LlmOutputValidator {
         }
 
         // Category is optional (can be null/blank)
+    }
+
+    /**
+     * Validates sentence set from LLM.
+     * Checks schema and that each sentence has non-blank Bulgarian and English text.
+     */
+    public void validateSentenceSet(SentenceSet set) {
+        if (set == null) {
+            throw new LlmValidationException("SentenceSet is null");
+        }
+
+        Set<ConstraintViolation<SentenceSet>> violations = validator.validate(set);
+        if (!violations.isEmpty()) {
+            String violationMessages = violations.stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .collect(Collectors.joining(", "));
+            throw new LlmValidationException("Bean validation failed: " + violationMessages);
+        }
+
+        if (set.sentences() == null || set.sentences().isEmpty()) {
+            throw new LlmValidationException("SentenceSet has no sentences");
+        }
+
+        if (set.sentences().size() < 2) {
+            throw new LlmValidationException("SentenceSet has fewer than 2 sentences: " + set.sentences().size());
+        }
+
+        for (SentenceSet.SentenceEntry entry : set.sentences()) {
+            if (entry.bulgarianText() == null || entry.bulgarianText().isBlank()) {
+                throw new LlmValidationException("Sentence has blank Bulgarian text");
+            }
+            if (entry.englishTranslation() == null || entry.englishTranslation().isBlank()) {
+                throw new LlmValidationException("Sentence has blank English translation");
+            }
+        }
     }
 
     /**

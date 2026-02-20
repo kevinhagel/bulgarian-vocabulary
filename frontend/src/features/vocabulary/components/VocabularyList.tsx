@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useDueCount } from '@/features/study/api/useDueCount';
 import { useVocabulary } from '../api/useVocabulary';
 import { useSearchVocabulary } from '../api/useSearchVocabulary';
+import { useGenerateAllSentences } from '../api/useGenerateAllSentences';
 import { useVocabularyUIStore } from '../stores/useVocabularyUIStore';
 import { VocabularyFilters } from './VocabularyFilters';
 import { VocabularyCard } from './VocabularyCard';
@@ -31,6 +33,21 @@ export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyList
 
   const { data: dueCount } = useDueCount();
   const totalDue = (dueCount?.dueToday ?? 0) + (dueCount?.newCards ?? 0);
+  const generateAll = useGenerateAllSentences();
+  const [generateAllMessage, setGenerateAllMessage] = useState<string | null>(null);
+
+  const handleGenerateAll = () => {
+    generateAll.mutate(undefined, {
+      onSuccess: (data) => {
+        setGenerateAllMessage(
+          data.queued > 0
+            ? `${data.queued} word${data.queued === 1 ? '' : 's'} queued for sentence generation.`
+            : 'All words already have sentences.'
+        );
+        setTimeout(() => setGenerateAllMessage(null), 5000);
+      },
+    });
+  };
 
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -82,6 +99,15 @@ export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyList
             </button>
           )}
           <button
+            onClick={handleGenerateAll}
+            disabled={generateAll.isPending}
+            title="Generate example sentences for all words that don't have them yet"
+            className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md
+                       hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            Generate All Sentences
+          </button>
+          <button
             onClick={openCreateModal}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
           >
@@ -93,6 +119,13 @@ export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyList
           </button>
         </div>
       </div>
+
+      {/* Generate All feedback */}
+      {generateAllMessage && (
+        <div className="mb-4 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+          {generateAllMessage}
+        </div>
+      )}
 
       {/* Filters */}
       <VocabularyFilters />
