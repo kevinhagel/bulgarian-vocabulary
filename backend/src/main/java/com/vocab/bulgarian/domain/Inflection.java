@@ -30,6 +30,9 @@ public class Inflection {
     @Column(name = "difficulty_level", length = 20)
     private String difficultyLevel;
 
+    @Column(name = "accented_form", length = 120)
+    private String accentedForm;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lemma_id", nullable = false)
     private Lemma lemma;
@@ -88,6 +91,14 @@ public class Inflection {
 
     public void setDifficultyLevel(String difficultyLevel) {
         this.difficultyLevel = difficultyLevel;
+    }
+
+    public String getAccentedForm() {
+        return accentedForm;
+    }
+
+    public void setAccentedForm(String accentedForm) {
+        this.accentedForm = accentedForm;
     }
 
     public Lemma getLemma() {

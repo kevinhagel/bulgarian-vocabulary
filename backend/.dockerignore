@@ -1,0 +1,14 @@
+.git
+.gitignore
+src/
+.mvn/
+mvnw
+mvnw.cmd
+*.md
+target/classes/
+target/test-classes/
+target/surefire-reports/
+target/generated-sources/
+target/generated-test-sources/
+target/maven-archiver/
+target/maven-status/

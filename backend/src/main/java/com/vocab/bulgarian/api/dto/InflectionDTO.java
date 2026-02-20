@@ -8,6 +8,7 @@ public record InflectionDTO(
     Long id,
     String form,
     String grammaticalInfo,
-    String difficultyLevel  // BASIC (аз, той/тя/то), INTERMEDIATE, ADVANCED
+    String difficultyLevel,  // BASIC (аз, той/тя/то), INTERMEDIATE, ADVANCED
+    String accentedForm      // Form with stress mark (U+0301), e.g. часа́ — null for pre-Phase-9 entries
 ) {
 }

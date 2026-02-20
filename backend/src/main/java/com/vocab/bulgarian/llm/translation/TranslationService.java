@@ -1,5 +1,7 @@
 package com.vocab.bulgarian.llm.translation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vocab.bulgarian.exception.TranslationException;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -7,44 +9,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
+import java.net.URI;
 
 /**
- * Service for translating Bulgarian text to English using Google Translate.
- * Uses deep-translator Python library via subprocess for translation.
+ * Translates Bulgarian text to English via the Google Translate free endpoint.
+ * Pure Java HTTP — no Python subprocess required.
  */
 @Service
 public class TranslationService {
 
     private static final Logger logger = LoggerFactory.getLogger(TranslationService.class);
-    private static final int TIMEOUT_SECONDS = 10;
+    private static final String TRANSLATE_BASE =
+            "https://translate.googleapis.com/translate_a/single";
 
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
     private final Timer successTimer;
     private final Timer failureTimer;
 
     public TranslationService(MeterRegistry meterRegistry) {
+        this.restClient = RestClient.create();
+        this.objectMapper = new ObjectMapper();
         this.successTimer = Timer.builder("vocab.translation.google")
                 .tag("outcome", "success")
-                .description("Google Translate subprocess duration")
+                .description("Google Translate duration")
                 .register(meterRegistry);
         this.failureTimer = Timer.builder("vocab.translation.google")
                 .tag("outcome", "failure")
-                .description("Google Translate subprocess duration (failed)")
+                .description("Google Translate duration (failed)")
                 .register(meterRegistry);
     }
 
-    /**
-     * Translate Bulgarian text to English.
-     * Results are cached to avoid redundant API calls.
-     *
-     * @param bulgarianText the Bulgarian text to translate
-     * @return English translation
-     * @throws TranslationException if translation fails
-     */
     @Cacheable(value = "translations", key = "#bulgarianText.trim().toLowerCase()")
     public String translate(String bulgarianText) {
         if (bulgarianText == null || bulgarianText.isBlank()) {
@@ -53,71 +51,35 @@ public class TranslationService {
 
         Timer.Sample sample = Timer.start();
         try {
-            logger.debug("Translating Bulgarian text: {}", bulgarianText);
+            // UriComponentsBuilder handles Cyrillic encoding correctly — no manual URLEncoder needed
+            URI uri = UriComponentsBuilder.fromUriString(TRANSLATE_BASE)
+                    .queryParam("client", "gtx")
+                    .queryParam("sl", "bg")
+                    .queryParam("tl", "en")
+                    .queryParam("dt", "t")
+                    .queryParam("q", bulgarianText.trim())
+                    .build()
+                    .encode()
+                    .toUri();
 
-            // Use deep-translator Python library via subprocess
-            ProcessBuilder pb = new ProcessBuilder(
-                "python3",
-                "-c",
-                "from deep_translator import GoogleTranslator; " +
-                "import sys; " +
-                "text = sys.stdin.read(); " +
-                "print(GoogleTranslator(source='bg', target='en').translate(text), end='')"
-            );
+            // Response format: [[["translation","original",...]],...,"bg"]
+            String response = restClient.get()
+                    .uri(uri)
+                    .header("User-Agent", "Mozilla/5.0")
+                    .retrieve()
+                    .body(String.class);
 
-            Process process = pb.start();
+            JsonNode root = objectMapper.readTree(response);
+            String translation = root.get(0).get(0).get(0).asText();
 
-            // Write Bulgarian text to stdin
-            try (var writer = process.outputWriter(StandardCharsets.UTF_8)) {
-                writer.write(bulgarianText);
-                writer.flush();
-            }
-
-            // Read translation from stdout
-            StringBuilder output = new StringBuilder();
-            try (var reader = new BufferedReader(new InputStreamReader(
-                    process.getInputStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line);
-                }
-            }
-
-            // Read any errors from stderr
-            StringBuilder errorOutput = new StringBuilder();
-            try (var errorReader = new BufferedReader(new InputStreamReader(
-                    process.getErrorStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = errorReader.readLine()) != null) {
-                    errorOutput.append(line).append("\n");
-                }
-            }
-
-            boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            if (!finished) {
-                process.destroyForcibly();
-                throw new TranslationException("Translation timed out after " + TIMEOUT_SECONDS + " seconds");
-            }
-
-            int exitCode = process.exitValue();
-            if (exitCode != 0) {
-                logger.error("Translation failed with exit code {}: {}", exitCode, errorOutput);
-                throw new TranslationException("Translation process failed: " + errorOutput);
-            }
-
-            String translation = output.toString().trim();
-            if (translation.isEmpty()) {
+            if (translation == null || translation.isBlank()) {
                 throw new TranslationException("Translation returned empty result");
             }
 
-            logger.debug("Translation successful: {} -> {}", bulgarianText, translation);
+            logger.debug("Translation: {} → {}", bulgarianText, translation);
             sample.stop(successTimer);
             return translation;
 
-        } catch (InterruptedException e) {
-            sample.stop(failureTimer);
-            Thread.currentThread().interrupt();
-            throw new TranslationException("Translation interrupted", e);
         } catch (Exception e) {
             sample.stop(failureTimer);
             logger.error("Translation failed for text: {}", bulgarianText, e);
@@ -125,19 +87,11 @@ public class TranslationService {
         }
     }
 
-    /**
-     * Translate Bulgarian text to English with fallback to null on failure.
-     * Used in background processing where graceful degradation is preferred.
-     *
-     * @param bulgarianText the Bulgarian text to translate
-     * @return English translation or null if translation fails
-     */
     public String translateWithFallback(String bulgarianText) {
         try {
             return translate(bulgarianText);
         } catch (Exception e) {
-            logger.warn("Translation failed for '{}', returning null: {}",
-                        bulgarianText, e.getMessage());
+            logger.warn("Translation failed for '{}', returning null: {}", bulgarianText, e.getMessage());
             return null;
         }
     }

@@ -96,6 +96,8 @@ public interface LemmaMapper {
                 Inflection inflection = new Inflection();
                 inflection.setForm(entry.text());
                 inflection.setGrammaticalInfo(entry.grammaticalTags());
+                inflection.setDifficultyLevel(entry.difficultyLevel());
+                inflection.setAccentedForm(entry.accentedForm());
                 lemma.addInflection(inflection);
             }
         }

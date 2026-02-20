@@ -20,6 +20,7 @@ public record InflectionSet(
     public record InflectionEntry(
         @NotBlank String text,          // The inflected form (Cyrillic)
         String grammaticalTags,         // e.g., "1sg.pres", "3pl.past.imperf"
-        String difficultyLevel          // BASIC (аз, той/тя/то), INTERMEDIATE, ADVANCED
+        String difficultyLevel,         // BASIC (аз, той/тя/то), INTERMEDIATE, ADVANCED
+        String accentedForm             // Form with Unicode combining acute (U+0301) on stressed vowel, e.g. часа́
     ) {}
 }

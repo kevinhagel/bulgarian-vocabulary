@@ -151,6 +151,69 @@ export function formatWithPronoun(tag: string | null | undefined): string {
 }
 
 /**
+ * Parses a noun grammatical tag into structured number and definiteness.
+ * Handles tags like "sg.indef", "sg.def", "pl.indef", "pl.def".
+ *
+ * @param tag - Noun grammatical tag
+ * @returns Parsed components, or null if the tag is not a recognisable noun tag
+ *
+ * @example
+ * parseNounTag("sg.indef") // { number: 'singular', definiteness: 'indefinite' }
+ * parseNounTag("pl.def")   // { number: 'plural', definiteness: 'definite' }
+ */
+export function parseNounTag(
+  tag: string
+): { number: 'singular' | 'plural'; definiteness: 'indefinite' | 'definite' } | null {
+  if (!tag) return null;
+  const parts = tag.toLowerCase().split('.');
+
+  let number: 'singular' | 'plural' | null = null;
+  for (const part of parts) {
+    if (part === 'sg') number = 'singular';
+    else if (part === 'pl') number = 'plural';
+  }
+  if (!number) return null;
+
+  const isDefinite = parts.includes('def') && !parts.includes('indef');
+  const definiteness: 'indefinite' | 'definite' = isDefinite ? 'definite' : 'indefinite';
+
+  return { number, definiteness };
+}
+
+/**
+ * Parses an adjective/pronoun grammatical tag into structured gender and definiteness.
+ * Handles tags like "masc", "fem.def", "neut", "pl.def", "m", "f.def", etc.
+ *
+ * @param tag - Adjective grammatical tag
+ * @returns Parsed components, or null if the tag is not a recognisable adjective tag
+ *
+ * @example
+ * parseAdjectiveTag("masc")     // { gender: 'masculine', definiteness: 'indefinite' }
+ * parseAdjectiveTag("fem.def")  // { gender: 'feminine', definiteness: 'definite' }
+ * parseAdjectiveTag("pl")       // { gender: 'plural', definiteness: 'indefinite' }
+ */
+export function parseAdjectiveTag(
+  tag: string
+): { gender: 'masculine' | 'feminine' | 'neuter' | 'plural'; definiteness: 'indefinite' | 'definite' } | null {
+  if (!tag) return null;
+  const parts = tag.toLowerCase().split('.');
+
+  let gender: 'masculine' | 'feminine' | 'neuter' | 'plural' | null = null;
+  for (const part of parts) {
+    if (part === 'masc' || part === 'm') gender = 'masculine';
+    else if (part === 'fem' || part === 'f') gender = 'feminine';
+    else if (part === 'neut' || part === 'n') gender = 'neuter';
+    else if (part === 'pl') gender = 'plural';
+  }
+  if (!gender) return null;
+
+  const isDefinite = parts.includes('def') && !parts.includes('indef');
+  const definiteness: 'indefinite' | 'definite' = isDefinite ? 'definite' : 'indefinite';
+
+  return { gender, definiteness };
+}
+
+/**
  * Gets a Bulgarian pronoun hint for a grammatical tag.
  *
  * @param tag - Abbreviated tag like "1sg", "2pl"

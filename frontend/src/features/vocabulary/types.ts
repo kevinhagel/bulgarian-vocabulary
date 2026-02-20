@@ -28,6 +28,7 @@ export interface InflectionDTO {
   form: string;
   grammaticalInfo: string | null;
   difficultyLevel: InflectionDifficulty | null;
+  accentedForm: string | null;
 }
 
 export interface LemmaResponseDTO {

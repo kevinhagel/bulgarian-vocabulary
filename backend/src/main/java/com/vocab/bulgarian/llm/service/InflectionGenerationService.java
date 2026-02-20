@@ -91,12 +91,21 @@ public class InflectionGenerationService {
             with and without the definite article.
             Tag: BASIC (masc), INTERMEDIATE (fem, neut, pl), ADVANCED (definite forms).
 
+            For each inflection, add accentedForm with the Unicode combining acute accent (U+0301)
+            on the stressed vowel (e.g. часа́, ра́бота). This is critical where the same spelling
+            carries different stress in different meanings. Omit (null) if stress is unambiguous.
+
             Respond in JSON format matching this structure:
             {
               "lemma": "the lemma",
               "partOfSpeech": "VERB|NOUN|ADJECTIVE|etc",
               "inflections": [
-                {"text": "inflected form", "grammaticalTags": "tags", "difficultyLevel": "BASIC|INTERMEDIATE|ADVANCED"}
+                {
+                  "text": "inflected form",
+                  "grammaticalTags": "tags",
+                  "difficultyLevel": "BASIC|INTERMEDIATE|ADVANCED",
+                  "accentedForm": "form with acute accent on stressed vowel e.g. часа́ — use Unicode U+0301, or null"
+                }
               ]
             }
             """, partOfSpeech, normalizedLemma);

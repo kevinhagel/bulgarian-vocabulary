@@ -4,8 +4,14 @@ import api from '@/lib/api';
 import { Modal } from '@/components/ui/Modal';
 import type { LemmaDetailDTO } from '@/features/vocabulary/types';
 
+interface ParsedEntry {
+  word: string;
+  notes?: string;
+}
+
 interface WordStatus {
   word: string;
+  notes?: string;
   status: 'pending' | 'adding' | 'added' | 'duplicate_found' | 'failed';
   lemmaText?: string;
   error?: string;
@@ -22,21 +28,31 @@ export function AddVocabularyToList({ listId, onClose }: Props) {
   const [isProcessing, setIsProcessing] = useState(false);
   const queryClient = useQueryClient();
 
+  const parseEntry = (line: string): ParsedEntry => {
+    const match = line.match(/^(.+?)\s*\(notes:\s*(.+?)\)\s*$/);
+    if (match) return { word: match[1].trim(), notes: match[2].trim() };
+    return { word: line.trim() };
+  };
+
+  const parseEntries = (text: string): ParsedEntry[] =>
+    text.split('\n').map(l => l.trim()).filter(l => l.length > 0).map(parseEntry);
+
+  // keep for word count display
   const parseWords = (text: string): string[] =>
-    text.split('\n').map(w => w.trim()).filter(w => w.length > 0);
+    parseEntries(text).map(e => e.word);
 
   const updateStatus = (index: number, update: Partial<WordStatus>) =>
     setStatuses(prev => prev.map((s, i) => i === index ? { ...s, ...update } : s));
 
   const processWords = async () => {
-    const words = parseWords(input);
-    if (words.length === 0) return;
+    const entries = parseEntries(input);
+    if (entries.length === 0) return;
 
     setIsProcessing(true);
-    setStatuses(words.map(w => ({ word: w, status: 'pending' })));
+    setStatuses(entries.map(e => ({ word: e.word, notes: e.notes, status: 'pending' })));
 
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
+    for (let i = 0; i < entries.length; i++) {
+      const { word, notes } = entries[i];
       updateStatus(i, { status: 'adding' });
 
       try {
@@ -47,6 +63,7 @@ export function AddVocabularyToList({ listId, onClose }: Props) {
           const createRes = await api.post<LemmaDetailDTO>('/vocabulary', {
             wordForm: word,
             translation: '',
+            ...(notes && { notes }),
           });
           lemmaId = createRes.data.id;
           lemmaText = createRes.data.text;
@@ -127,11 +144,12 @@ export function AddVocabularyToList({ listId, onClose }: Props) {
             <p className="text-sm text-gray-500">
               Enter Bulgarian word forms, one per line. You can enter inflected forms
               (e.g. чете) or lemmas (чета) — the app will detect the canonical form.
+              Optionally add notes inline: <span className="font-mono text-gray-600">пера (notes: verb - to wash)</span>
             </p>
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder={'чете\nказвам\nказвам се\nобичам'}
+              placeholder={'чета\nпера (notes: verb - to wash)\nказвам се\nобичам'}
               rows={8}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-lg
                          focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"

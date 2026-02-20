@@ -58,7 +58,7 @@ public class VocabularyService {
     public CompletableFuture<LemmaDetailDTO> createVocabulary(CreateLemmaRequestDTO request) {
         // Step 1: Create lemma entity with user input (translation optional)
         Lemma lemma = new Lemma();
-        lemma.setText(request.wordForm()); // Will be updated to canonical form during background processing
+        lemma.setText(request.wordForm().trim().toLowerCase()); // Will be updated to canonical form during background processing
         lemma.setTranslation(request.translation()); // May be null - auto-translated in background
         lemma.setNotes(request.notes());
         lemma.setSource(Source.USER_ENTERED);
