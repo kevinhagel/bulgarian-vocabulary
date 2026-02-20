@@ -13,6 +13,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Translates Bulgarian text to English via the Google Translate free endpoint.
@@ -94,5 +96,39 @@ public class TranslationService {
             logger.warn("Translation failed for '{}', returning null: {}", bulgarianText, e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Hint-aware translation for homographs.
+     * If the user's notes contain "meaning X" or "means X", extract X directly
+     * (no Google Translate call needed — the user already told us the meaning).
+     * Otherwise falls back to standard Google Translate.
+     *
+     * Examples:
+     *   hint="noun meaning road"            → "road"
+     *   hint="noun meaning time/occasion"   → "time/occasion"
+     *   hint="reflexive verb, means 'to be called'" → "to be called"
+     *   hint=null or no match               → Google Translate as usual
+     */
+    public String translateWithFallback(String bulgarianText, String hint) {
+        if (hint != null && !hint.isBlank()) {
+            String extracted = extractMeaningFromHint(hint);
+            if (extracted != null) {
+                logger.debug("Translation from hint for '{}': {}", bulgarianText, extracted);
+                return extracted;
+            }
+        }
+        return translateWithFallback(bulgarianText);
+    }
+
+    // Matches "meaning road", "means 'to be called'", "meaning time/occasion, NOT road"
+    private static final Pattern MEANING_PATTERN = Pattern.compile(
+        "(?:meaning|means)\\s+'?([^',;]+?)(?:'\\s*|,|;|\\s+NOT\\b|$)",
+        Pattern.CASE_INSENSITIVE
+    );
+
+    private static String extractMeaningFromHint(String hint) {
+        Matcher m = MEANING_PATTERN.matcher(hint);
+        return m.find() ? m.group(1).trim() : null;
     }
 }

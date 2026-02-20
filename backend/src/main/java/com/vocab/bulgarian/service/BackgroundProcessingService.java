@@ -129,7 +129,7 @@ public class BackgroundProcessingService {
 
             // Step 3: Translation (also outside TX — may involve a network call)
             Instant step3Start = Instant.now();
-            translation = translationService.translateWithFallback(detectedLemma);
+            translation = translationService.translateWithFallback(detectedLemma, translationHint);
             logger.info("[3/5] Translation: '{}' ({}ms)", translation, Duration.between(step3Start, Instant.now()).toMillis());
 
         } catch (Exception e) {
