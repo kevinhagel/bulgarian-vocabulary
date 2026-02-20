@@ -20,8 +20,9 @@ import { ListsView } from '@/features/lists/components/ListsView';
 import { ListDetail } from '@/features/lists/components/ListDetail';
 import { AddVocabularyToList } from '@/features/lists/components/AddVocabularyToList';
 import { HelpPage } from '@/features/help/HelpPage';
+import { AdminDashboard } from '@/features/admin/AdminDashboard';
 
-type AppView = 'vocabulary' | 'study' | 'lists' | 'review' | 'help';
+type AppView = 'vocabulary' | 'study' | 'lists' | 'review' | 'help' | 'admin';
 
 function App() {
   const { data: user, isLoading } = useAuth();
@@ -126,6 +127,18 @@ function App() {
           >
             Help
           </button>
+          {user?.isAdmin && (
+            <button
+              onClick={() => handleSwitchTab('admin')}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                appView === 'admin'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Admin
+            </button>
+          )}
         </nav>
       </div>
 
@@ -177,6 +190,9 @@ function App() {
 
       {/* Help page */}
       {appView === 'help' && <HelpPage />}
+
+      {/* Admin dashboard */}
+      {appView === 'admin' && user?.isAdmin && <AdminDashboard />}
 
       {/* CRUD Modals */}
       <CreateVocabularyModal />

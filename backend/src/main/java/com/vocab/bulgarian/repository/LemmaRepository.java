@@ -91,4 +91,28 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
 
     @Query("SELECT l FROM Lemma l WHERE l.source = com.vocab.bulgarian.domain.enums.Source.USER_ENTERED AND l.reviewStatus IN :statuses ORDER BY l.createdAt DESC")
     Page<Lemma> findReviewQueue(@Param("statuses") List<ReviewStatus> statuses, Pageable pageable);
+
+    // Admin queries
+    long countByProcessingStatus(ProcessingStatus processingStatus);
+    long countByReviewStatus(ReviewStatus reviewStatus);
+
+    @Query("SELECT l FROM Lemma l WHERE l.processingStatus = com.vocab.bulgarian.domain.enums.ProcessingStatus.FAILED ORDER BY l.updatedAt DESC")
+    List<Lemma> findFailedLemmas();
+
+    @Query("SELECT l FROM Lemma l WHERE l.processingStatus = com.vocab.bulgarian.domain.enums.ProcessingStatus.PROCESSING AND l.updatedAt < :cutoff")
+    List<Lemma> findStuckLemmas(@Param("cutoff") java.time.LocalDateTime cutoff);
+
+    // Duplicate detection: same text + same source, different IDs
+    @Query(value = """
+        SELECT l.id, l.text, l.source, l.notes, l.processing_status, l.created_at
+        FROM lemmas l
+        WHERE (l.text, l.source) IN (
+            SELECT text, source FROM lemmas GROUP BY text, source HAVING COUNT(*) > 1
+        )
+        ORDER BY l.text, l.source, l.created_at
+        """, nativeQuery = true)
+    List<Object[]> findDuplicateRows();
+
+    @Query("SELECT COUNT(i) FROM Inflection i")
+    long countAllInflections();
 }

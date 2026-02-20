@@ -133,3 +133,4 @@ server:
 # Email allowlist for Google OAuth
 app:
   allowed-emails: ${ALLOWED_EMAIL_KEVIN},${ALLOWED_EMAIL_HUW},${ALLOWED_EMAIL_ELENA:nobody@example.invalid}
+  admin-email: ${ALLOWED_EMAIL_KEVIN}

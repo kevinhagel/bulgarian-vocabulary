@@ -20,10 +20,13 @@ public class AuthController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        boolean isAdmin = principal.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         return ResponseEntity.ok(Map.of(
-            "name", principal.getAttribute("name"),
-            "email", principal.getAttribute("email"),
-            "picture", principal.getAttribute("picture")
+            "name",    principal.getAttribute("name"),
+            "email",   principal.getAttribute("email"),
+            "picture", principal.getAttribute("picture"),
+            "isAdmin", isAdmin
         ));
     }
 }
