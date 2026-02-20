@@ -25,8 +25,13 @@ export function CreateVocabularyModal() {
         notes: data.notes || undefined,
       });
       closeModal();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create vocabulary');
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 409) {
+        setError(`"${data.wordForm.trim().toLowerCase()}" is already in your vocabulary.`);
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to create vocabulary');
+      }
     }
   };
 
