@@ -8,6 +8,7 @@ import { useVocabularyUIStore } from '../stores/useVocabularyUIStore';
 import { VocabularyFilters } from './VocabularyFilters';
 import { VocabularyCard } from './VocabularyCard';
 import { Pagination } from './Pagination';
+import { BulkAddModal } from './BulkAddModal';
 
 interface VocabularyListProps {
   onViewDetail: (id: number) => void;
@@ -35,6 +36,7 @@ export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyList
   const totalDue = (dueCount?.dueToday ?? 0) + (dueCount?.newCards ?? 0);
   const generateAll = useGenerateAllSentences();
   const [generateAllMessage, setGenerateAllMessage] = useState<string | null>(null);
+  const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
 
   const handleGenerateAll = () => {
     generateAll.mutate(undefined, {
@@ -106,6 +108,14 @@ export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyList
                        hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Generate All Sentences
+          </button>
+          <button
+            onClick={() => setIsBulkAddOpen(true)}
+            className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md
+                       hover:bg-gray-50 transition-colors"
+            title="Add multiple words at once, with optional notes for disambiguation"
+          >
+            Bulk Add
           </button>
           <button
             onClick={openCreateModal}
@@ -230,6 +240,8 @@ export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyList
           )}
         </>
       )}
+
+      {isBulkAddOpen && <BulkAddModal onClose={() => setIsBulkAddOpen(false)} />}
     </div>
   );
 }
