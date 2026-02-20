@@ -62,7 +62,7 @@ public class SentenceGenerationService {
             ? ", means \"" + translation + "\""
             : "";
 
-        log.debug("Calling Qwen 2.5 14B for sentence generation: {}", normalizedLemma);
+        log.info("Calling Qwen 2.5 14B for sentence generation: {}", normalizedLemma);
 
         String prompt = String.format("""
             Generate 4 natural Bulgarian example sentences for the %s "%s"%s.
@@ -96,7 +96,7 @@ public class SentenceGenerationService {
 
             validator.validateSentenceSet(response);
 
-            log.debug("Sentence generation completed for {}: {} sentences", normalizedLemma,
+            log.info("Sentence generation completed for {}: {} sentences", normalizedLemma,
                 response != null ? response.sentences().size() : 0);
 
             sample.stop(successTimer);

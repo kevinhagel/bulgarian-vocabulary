@@ -10,6 +10,7 @@ import com.vocab.bulgarian.llm.service.SentenceGenerationService;
 import com.vocab.bulgarian.repository.LemmaRepository;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,8 @@ public class SentenceService {
     private final TransactionTemplate txTemplate;
     private final Counter successCounter;
     private final Counter failureCounter;
+    private final Timer successTimer;
+    private final Timer failureTimer;
 
     public SentenceService(
             LemmaRepository lemmaRepository,
@@ -63,6 +66,14 @@ public class SentenceService {
         this.failureCounter = Counter.builder("vocab.sentences.generated")
                 .tag("outcome", "failure")
                 .description("Words that failed sentence generation")
+                .register(meterRegistry);
+        this.successTimer = Timer.builder("vocab.sentences.total")
+                .tag("outcome", "success")
+                .description("End-to-end sentence generation duration")
+                .register(meterRegistry);
+        this.failureTimer = Timer.builder("vocab.sentences.total")
+                .tag("outcome", "failure")
+                .description("End-to-end sentence generation duration (failed)")
                 .register(meterRegistry);
     }
 
@@ -98,6 +109,7 @@ public class SentenceService {
     @Async("llmTaskExecutor")
     public void backgroundGenerateSentences(Long lemmaId) {
         Instant start = Instant.now();
+        Timer.Sample totalSample = Timer.start();
         logger.info("Sentence generation started — lemma ID: {}", lemmaId);
 
         // TX 1: load lemma info, mark GENERATING
@@ -144,6 +156,7 @@ public class SentenceService {
                 lemma.setSentenceStatus(SentenceStatus.FAILED);
                 lemmaRepository.save(lemma);
                 failureCounter.increment();
+                totalSample.stop(failureTimer);
                 return null;
             }
 
@@ -161,6 +174,7 @@ public class SentenceService {
             lemmaRepository.save(lemma);
 
             successCounter.increment();
+            totalSample.stop(successTimer);
             logger.info("Sentence generation COMPLETED — lemma ID: {}, '{}', {} sentences, {}ms",
                 lemmaId, lemma.getText(), entries.size(),
                 Duration.between(start, Instant.now()).toMillis());
