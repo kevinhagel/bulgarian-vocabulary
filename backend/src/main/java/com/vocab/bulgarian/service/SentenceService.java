@@ -14,6 +14,8 @@ import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -30,15 +32,24 @@ import java.util.List;
 /**
  * Orchestrates example sentence generation for vocabulary entries.
  * Uses the same two-transaction pattern as BackgroundProcessingService:
- *  TX1 → mark QUEUED → commit
+ *  TX1 → mark GENERATING → commit
  *  (no DB connection held)  → call Qwen 2.5 14B  (60-90s)
  *  TX2 → persist sentences → mark DONE → commit
+ *
+ * NOTE: No class-level @Transactional — backgroundGenerateSentences uses TransactionTemplate
+ * directly and must NOT inherit a read-only transaction context. afterCommit callbacks use
+ * self-injection (self) to ensure @Async fires through the Spring proxy.
  */
 @Service
-@Transactional(readOnly = true)
 public class SentenceService {
 
     private static final Logger logger = LoggerFactory.getLogger(SentenceService.class);
+
+    // Self-reference injected lazily so @Async is applied through the Spring proxy.
+    // Calling this.backgroundGenerateSentences() from afterCommit() would bypass the proxy.
+    @Lazy
+    @Autowired
+    private SentenceService self;
 
     private final LemmaRepository lemmaRepository;
     private final SentenceGenerationService sentenceGenerationService;
@@ -91,11 +102,12 @@ public class SentenceService {
         lemma.setSentenceStatus(SentenceStatus.QUEUED);
         Lemma saved = lemmaRepository.save(lemma);
 
-        // Trigger background generation after this TX commits
+        // Trigger background generation after this TX commits.
+        // Must call through `self` (the proxy) so @Async is applied.
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                backgroundGenerateSentences(lemmaId);
+                self.backgroundGenerateSentences(lemmaId);
             }
         });
 
@@ -199,12 +211,13 @@ public class SentenceService {
         }
         logger.info("Batch sentence generation: {} lemmas queued", count);
 
-        // After TX commits, fire off background tasks for each
+        // After TX commits, fire off background tasks for each.
+        // Must call through `self` (the proxy) so @Async is applied.
         final List<Long> ids = lemmas.stream().map(Lemma::getId).toList();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                ids.forEach(id -> backgroundGenerateSentences(id));
+                ids.forEach(id -> self.backgroundGenerateSentences(id));
             }
         });
 
