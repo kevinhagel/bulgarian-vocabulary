@@ -86,6 +86,8 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
 
     long countBySentenceStatus(SentenceStatus sentenceStatus);
 
+    List<Lemma> findBySentenceStatusIn(List<SentenceStatus> statuses);
+
     @Query("SELECT l FROM Lemma l WHERE l.sentenceStatus = com.vocab.bulgarian.domain.enums.SentenceStatus.NONE " +
            "AND l.processingStatus = com.vocab.bulgarian.domain.enums.ProcessingStatus.COMPLETED " +
            "ORDER BY l.createdAt ASC")
