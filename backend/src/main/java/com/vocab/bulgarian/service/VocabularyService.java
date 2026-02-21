@@ -145,8 +145,23 @@ public class VocabularyService {
      * @return list of matching lemma summary DTOs
      */
     public List<LemmaResponseDTO> searchVocabulary(String query) {
-        List<Lemma> results = lemmaRepository.searchByText(query);
-        return results.stream()
+        // Search lemma text first (ordered by PGroonga relevance score)
+        List<Lemma> byText = lemmaRepository.searchByText(query);
+
+        // Also search inflected forms and include their parent lemmas
+        List<Lemma> byInflection = lemmaRepository.searchByInflectionForm(query);
+
+        // Merge: lemma-text matches first, then inflection-only matches (deduplicated by ID)
+        var seen = new java.util.LinkedHashSet<Long>();
+        var merged = new java.util.ArrayList<Lemma>(byText.size() + byInflection.size());
+        for (Lemma l : byText) {
+            if (seen.add(l.getId())) merged.add(l);
+        }
+        for (Lemma l : byInflection) {
+            if (seen.add(l.getId())) merged.add(l);
+        }
+
+        return merged.stream()
             .map(lemmaMapper::toResponseDTO)
             .toList();
     }

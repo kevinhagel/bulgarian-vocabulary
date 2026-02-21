@@ -53,6 +53,10 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
     @Query(value = "SELECT * FROM lemmas WHERE text &@~ :searchQuery ORDER BY pgroonga_score(tableoid, ctid) DESC LIMIT 20", nativeQuery = true)
     List<Lemma> searchByText(@Param("searchQuery") String searchQuery);
 
+    // Search for lemmas that have a matching inflected form
+    @Query(value = "SELECT DISTINCT l.* FROM lemmas l JOIN inflections i ON i.lemma_id = l.id WHERE i.form &@~ :searchQuery LIMIT 20", nativeQuery = true)
+    List<Lemma> searchByInflectionForm(@Param("searchQuery") String searchQuery);
+
     // Paginated browse with optional filtering by source
     Page<Lemma> findBySource(Source source, Pageable pageable);
 
