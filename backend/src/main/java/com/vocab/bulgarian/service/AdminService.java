@@ -21,9 +21,11 @@ import java.util.Map;
 public class AdminService {
 
     private final LemmaRepository lemmaRepository;
+    private final SentenceService sentenceService;
 
-    public AdminService(LemmaRepository lemmaRepository) {
+    public AdminService(LemmaRepository lemmaRepository, SentenceService sentenceService) {
         this.lemmaRepository = lemmaRepository;
+        this.sentenceService = sentenceService;
     }
 
     public AdminStatsDTO getStats() {
@@ -41,36 +43,41 @@ public class AdminService {
                 total, completed, failed, processing, queued, reviewed, pending, needsCorrection);
 
         // Sentence stats
-        long sentDone      = lemmaRepository.countBySentenceStatus(SentenceStatus.DONE);
-        long sentNone      = lemmaRepository.countBySentenceStatus(SentenceStatus.NONE);
-        long sentQueued    = lemmaRepository.countBySentenceStatus(SentenceStatus.QUEUED);
+        long sentDone       = lemmaRepository.countBySentenceStatus(SentenceStatus.DONE);
+        long sentNone       = lemmaRepository.countBySentenceStatus(SentenceStatus.NONE);
+        long sentQueued     = lemmaRepository.countBySentenceStatus(SentenceStatus.QUEUED);
         long sentGenerating = lemmaRepository.countBySentenceStatus(SentenceStatus.GENERATING);
-        long sentFailed    = lemmaRepository.countBySentenceStatus(SentenceStatus.FAILED);
+        long sentFailed     = lemmaRepository.countBySentenceStatus(SentenceStatus.FAILED);
 
         var sentenceStats = new AdminStatsDTO.SentenceStats(
                 sentDone, sentNone, sentQueued, sentGenerating, sentFailed);
 
         long totalInflections = lemmaRepository.countAllInflections();
 
-        // Failed lemmas
+        // Failed lemmas (inflection/processing failures)
         List<AdminStatsDTO.IssueLemmaDTO> failedLemmas = lemmaRepository.findFailedLemmas()
-                .stream()
-                .map(this::toIssueLemmaDTO)
-                .toList();
+                .stream().map(this::toIssueLemmaDTO).toList();
 
         // Stuck lemmas: PROCESSING for more than 15 minutes
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(15);
         List<AdminStatsDTO.IssueLemmaDTO> stuckLemmas = lemmaRepository.findStuckLemmas(cutoff)
-                .stream()
-                .map(this::toIssueLemmaDTO)
-                .toList();
+                .stream().map(this::toIssueLemmaDTO).toList();
 
-        // Duplicates: group by (text, source)
+        // Duplicates
         List<AdminStatsDTO.DuplicateGroupDTO> duplicates = buildDuplicateGroups(
                 lemmaRepository.findDuplicateRows());
 
+        // Failed sentence generation
+        List<AdminStatsDTO.FailedSentenceDTO> failedSentences = lemmaRepository
+                .findBySentenceStatusIn(List.of(SentenceStatus.FAILED))
+                .stream()
+                .map(l -> new AdminStatsDTO.FailedSentenceDTO(l.getId(), l.getText()))
+                .toList();
+
+        double avgSentenceSeconds = sentenceService.getAvgSentenceGenerationSeconds();
+
         return new AdminStatsDTO(lemmaStats, sentenceStats, totalInflections,
-                failedLemmas, stuckLemmas, duplicates);
+                failedLemmas, stuckLemmas, duplicates, failedSentences, avgSentenceSeconds);
     }
 
     private AdminStatsDTO.IssueLemmaDTO toIssueLemmaDTO(Lemma l) {
@@ -84,14 +91,8 @@ public class AdminService {
         );
     }
 
-    /**
-     * Groups raw duplicate rows (id, text, source, notes, processing_status, created_at)
-     * into DuplicateGroupDTO, keyed by "text|source".
-     */
     private List<AdminStatsDTO.DuplicateGroupDTO> buildDuplicateGroups(List<Object[]> rows) {
-        // LinkedHashMap preserves ORDER BY text, source from the query
         Map<String, AdminStatsDTO.DuplicateGroupDTO> groups = new LinkedHashMap<>();
-
         for (Object[] row : rows) {
             long id = ((Number) row[0]).longValue();
             String text = (String) row[1];
@@ -108,7 +109,6 @@ public class AdminService {
             }
             group.entries().add(new AdminStatsDTO.DuplicateEntryDTO(id, notes, processingStatus, createdAt));
         }
-
         return new ArrayList<>(groups.values());
     }
 

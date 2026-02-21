@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -18,18 +21,35 @@
   "id": null,
   "links": [],
   "panels": [
-
     {
       "id": 1,
       "type": "stat",
       "title": "Words Processed",
       "description": "Total words successfully processed end-to-end",
-      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "unit": "short",
           "noValue": "0"
         },
@@ -40,12 +60,21 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_processing_words_total{outcome=\"success\"}",
           "legendFormat": "Processed",
           "refId": "A",
@@ -53,23 +82,41 @@
         }
       ]
     },
-
     {
       "id": 2,
       "type": "stat",
       "title": "Words Failed",
       "description": "Total words that failed processing",
-      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "green", "value": null},
-              {"color": "yellow", "value": 1},
-              {"color": "red", "value": 3}
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
             ]
           },
           "unit": "short",
@@ -82,12 +129,21 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_processing_words_total{outcome=\"failure\"}",
           "legendFormat": "Failed",
           "refId": "A",
@@ -95,27 +151,45 @@
         }
       ]
     },
-
     {
       "id": 3,
       "type": "stat",
       "title": "Success Rate",
       "description": "Percentage of words successfully processed",
-      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "red", "value": null},
-              {"color": "yellow", "value": 80},
-              {"color": "green", "value": 95}
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "green",
+                "value": 95
+              }
             ]
           },
           "unit": "percent",
-          "noValue": "—",
+          "noValue": "\u2014",
           "min": 0,
           "max": 100
         },
@@ -126,12 +200,21 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_processing_words_total{outcome=\"success\"} / (vocab_processing_words_total{outcome=\"success\"} + vocab_processing_words_total{outcome=\"failure\"}) * 100",
           "legendFormat": "Success Rate",
           "refId": "A",
@@ -139,31 +222,73 @@
         }
       ]
     },
-
     {
       "id": 4,
       "type": "stat",
       "title": "Ollama Circuit Breaker",
       "description": "0 = Closed (healthy), 1 = Open (tripped), 2 = Half-Open",
-      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "green", "value": null},
-              {"color": "yellow", "value": 2},
-              {"color": "red", "value": 1}
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
             ]
           },
           "mappings": [
-            {"type": "value", "options": {"0": {"text": "Closed", "color": "green"}}},
-            {"type": "value", "options": {"1": {"text": "OPEN", "color": "red"}}},
-            {"type": "value", "options": {"2": {"text": "Half-Open", "color": "yellow"}}}
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Closed",
+                  "color": "green"
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "OPEN",
+                  "color": "red"
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "2": {
+                  "text": "Half-Open",
+                  "color": "yellow"
+                }
+              }
+            }
           ],
-          "noValue": "—"
+          "noValue": "\u2014"
         },
         "overrides": []
       },
@@ -172,12 +297,21 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "resilience4j_circuitbreaker_state{name=\"ollama\"}",
           "legendFormat": "State",
           "refId": "A",
@@ -185,18 +319,27 @@
         }
       ]
     },
-
     {
       "id": 5,
       "type": "timeseries",
       "title": "End-to-End Processing Time",
       "description": "How long it takes to fully process one word (LLM pipeline + translation + DB saves)",
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 4},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "color": {"mode": "palette-classic"},
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "lineWidth": 2,
             "fillOpacity": 10,
@@ -206,45 +349,81 @@
         },
         "overrides": [
           {
-            "matcher": {"id": "byName", "options": "Max"},
+            "matcher": {
+              "id": "byName",
+              "options": "Max"
+            },
             "properties": [
-              {"id": "custom.lineStyle", "value": {"dash": [6, 3], "fill": "dash"}},
-              {"id": "custom.fillOpacity", "value": 0}
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    6,
+                    3
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
             ]
           }
         ]
       },
       "options": {
-        "tooltip": {"mode": "multi", "sort": "desc"},
-        "legend": {"displayMode": "list", "placement": "bottom"}
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_processing_total_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_processing_total_seconds_count{outcome=\"success\"}[$__rate_interval])",
           "legendFormat": "Average",
           "refId": "A"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_processing_total_seconds_max{outcome=\"success\"}",
           "legendFormat": "Max",
           "refId": "B"
         }
       ]
     },
-
     {
       "id": 6,
       "type": "timeseries",
       "title": "LLM Step Timings",
       "description": "Average duration of each Ollama call. Inflections and metadata run in parallel after lemma detection.",
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "color": {"mode": "palette-classic"},
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "lineWidth": 2,
             "fillOpacity": 8,
@@ -255,54 +434,90 @@
         "overrides": []
       },
       "options": {
-        "tooltip": {"mode": "multi", "sort": "desc"},
-        "legend": {"displayMode": "list", "placement": "bottom"}
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_llm_lemma_detection_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_llm_lemma_detection_seconds_count{outcome=\"success\"}[$__rate_interval])",
           "legendFormat": "Lemma Detection",
           "refId": "A"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_llm_inflections_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_llm_inflections_seconds_count{outcome=\"success\"}[$__rate_interval])",
           "legendFormat": "Inflection Generation",
           "refId": "B"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_llm_metadata_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_llm_metadata_seconds_count{outcome=\"success\"}[$__rate_interval])",
           "legendFormat": "Metadata Generation",
           "refId": "C"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_translation_google_seconds_sum{outcome=\"success\"}[$__rate_interval]) / rate(vocab_translation_google_seconds_count{outcome=\"success\"}[$__rate_interval])",
           "legendFormat": "Google Translate",
           "refId": "D"
         }
       ]
     },
-
     {
       "id": 7,
       "type": "bargauge",
       "title": "Step Duration Comparison (last observed average)",
       "description": "Side-by-side comparison of how long each step takes on average",
-      "gridPos": {"h": 8, "w": 14, "x": 0, "y": 20},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 8,
+        "w": 14,
+        "x": 0,
+        "y": 20
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "color": {"mode": "palette-classic"},
+          "color": {
+            "mode": "palette-classic"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "green", "value": null},
-              {"color": "yellow", "value": 15},
-              {"color": "red", "value": 40}
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 40
+              }
             ]
           },
           "min": 0
@@ -311,7 +526,13 @@
       },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "displayMode": "gradient",
         "valueMode": "color",
         "showUnfilled": true,
@@ -319,28 +540,40 @@
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_llm_lemma_detection_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_llm_lemma_detection_seconds_count{outcome=\"success\"}[5m])",
           "legendFormat": "Lemma Detection",
           "refId": "A",
           "instant": true
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_llm_inflections_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_llm_inflections_seconds_count{outcome=\"success\"}[5m])",
           "legendFormat": "Inflection Generation",
           "refId": "B",
           "instant": true
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_llm_metadata_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_llm_metadata_seconds_count{outcome=\"success\"}[5m])",
           "legendFormat": "Metadata Generation",
           "refId": "C",
           "instant": true
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(vocab_translation_google_seconds_sum{outcome=\"success\"}[5m]) / rate(vocab_translation_google_seconds_count{outcome=\"success\"}[5m])",
           "legendFormat": "Google Translate",
           "refId": "D",
@@ -348,27 +581,45 @@
         }
       ]
     },
-
     {
       "id": 8,
       "type": "stat",
       "title": "Worst-Case Times (Max Observed)",
       "description": "Maximum single-call duration seen since last backend restart",
-      "gridPos": {"h": 8, "w": 10, "x": 14, "y": 20},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 14,
+        "y": 20
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "color": {"mode": "thresholds"},
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "green", "value": null},
-              {"color": "yellow", "value": 20},
-              {"color": "red", "value": 60}
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
             ]
           },
-          "noValue": "—"
+          "noValue": "\u2014"
         },
         "overrides": []
       },
@@ -377,33 +628,51 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "horizontal",
-        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "value_and_name"
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_llm_lemma_detection_seconds_max{outcome=\"success\"}",
           "legendFormat": "Lemma Detection",
           "refId": "A",
           "instant": true
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_llm_inflections_seconds_max{outcome=\"success\"}",
           "legendFormat": "Inflections",
           "refId": "B",
           "instant": true
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_llm_metadata_seconds_max{outcome=\"success\"}",
           "legendFormat": "Metadata",
           "refId": "C",
           "instant": true
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "vocab_translation_google_seconds_max{outcome=\"success\"}",
           "legendFormat": "Google Translate",
           "refId": "D",
@@ -411,146 +680,613 @@
         }
       ]
     },
-
     {
       "id": 9,
       "type": "timeseries",
       "title": "HTTP API Request Rate",
       "description": "Requests per second to the vocabulary/lists/study API endpoints",
-      "gridPos": {"h": 7, "w": 12, "x": 0, "y": 28},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "color": {"mode": "palette-classic"},
-          "custom": {"lineWidth": 1, "fillOpacity": 5, "spanNulls": true}
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 5,
+            "spanNulls": true
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {"mode": "multi", "sort": "desc"},
-        "legend": {"displayMode": "list", "placement": "bottom"}
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(http_server_requests_seconds_count{uri=~\"/api/.*\"}[$__rate_interval])",
           "legendFormat": "{{method}} {{uri}} {{status}}",
           "refId": "A"
         }
       ]
     },
-
     {
       "id": 10,
       "type": "timeseries",
       "title": "HTTP API Latency (p50 average)",
       "description": "Average response time for API requests",
-      "gridPos": {"h": 7, "w": 12, "x": 12, "y": 28},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "color": {"mode": "palette-classic"},
-          "custom": {"lineWidth": 1, "fillOpacity": 5, "spanNulls": true}
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 5,
+            "spanNulls": true
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {"mode": "multi", "sort": "desc"},
-        "legend": {"displayMode": "list", "placement": "bottom"}
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "rate(http_server_requests_seconds_sum{uri=~\"/api/.*\"}[$__rate_interval]) / rate(http_server_requests_seconds_count{uri=~\"/api/.*\"}[$__rate_interval])",
           "legendFormat": "{{method}} {{uri}}",
           "refId": "A"
         }
       ]
     },
-
     {
       "id": 11,
       "type": "timeseries",
       "title": "JVM Memory",
       "description": "Heap and non-heap memory used by the Spring Boot backend",
-      "gridPos": {"h": 7, "w": 12, "x": 0, "y": 35},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
-          "color": {"mode": "palette-classic"},
-          "custom": {"lineWidth": 1, "fillOpacity": 10, "spanNulls": true}
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": true
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {"mode": "multi", "sort": "desc"},
-        "legend": {"displayMode": "list", "placement": "bottom"}
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "jvm_memory_used_bytes{area=\"heap\"}",
-          "legendFormat": "Heap Used — {{id}}",
+          "legendFormat": "Heap Used \u2014 {{id}}",
           "refId": "A"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "jvm_memory_used_bytes{area=\"nonheap\"}",
-          "legendFormat": "Non-Heap — {{id}}",
+          "legendFormat": "Non-Heap \u2014 {{id}}",
           "refId": "B"
         }
       ]
     },
-
     {
       "id": 12,
       "type": "timeseries",
-      "title": "HikariCP — DB Connection Pool",
+      "title": "HikariCP \u2014 DB Connection Pool",
       "description": "Active, idle, and pending database connections",
-      "gridPos": {"h": 7, "w": 12, "x": 12, "y": 35},
-      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": {"mode": "palette-classic"},
-          "custom": {"lineWidth": 1, "fillOpacity": 10, "spanNulls": true}
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": true
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {"mode": "multi", "sort": "desc"},
-        "legend": {"displayMode": "list", "placement": "bottom"}
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       },
       "targets": [
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "hikaricp_connections_active",
           "legendFormat": "Active",
           "refId": "A"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "hikaricp_connections_idle",
           "legendFormat": "Idle",
           "refId": "B"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "${datasource}"},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "hikaricp_connections_pending",
           "legendFormat": "Pending",
           "refId": "C"
         }
       ]
+    },
+    {
+      "id": 13,
+      "title": "Sentence Status Distribution",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "done"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "generating"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "queued"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "none"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "gray"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "vocab_sentences_status{application=\"bulgarian-vocabulary\"}",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 14,
+      "title": "Sentences Generated \u2014 rate per minute",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 44
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "success"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "rate(vocab_sentences_generated_total{application=\"bulgarian-vocabulary\"}[5m]) * 60",
+          "legendFormat": "{{outcome}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 15,
+      "title": "Avg Sentence Generation Duration (seconds)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 44
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "success"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "rate(vocab_sentences_total_seconds_sum{application=\"bulgarian-vocabulary\"}[5m]) / rate(vocab_sentences_total_seconds_count{application=\"bulgarian-vocabulary\"}[5m])",
+          "legendFormat": "{{outcome}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
+    },
+    {
+      "id": 16,
+      "title": "Sentence Backlog \u2014 DONE vs Remaining",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "done"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "generating"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "queued"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "vocab_sentences_status{application=\"bulgarian-vocabulary\"}",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      }
     }
-
   ],
-
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["bulgarian-vocab"],
+  "tags": [
+    "bulgarian-vocab"
+  ],
   "templating": {
     "list": [
       {
@@ -567,10 +1303,13 @@
       }
     ]
   },
-  "time": {"from": "now-1h", "to": "now"},
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Bulgarian Vocabulary — Word Processing",
+  "title": "Bulgarian Vocabulary \u2014 Word Processing",
   "uid": "bulgarian-vocab-processing",
   "version": 1,
   "weekStart": ""

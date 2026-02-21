@@ -8,7 +8,9 @@ public record AdminStatsDTO(
     long totalInflections,
     List<IssueLemmaDTO> failedLemmas,
     List<IssueLemmaDTO> stuckLemmas,
-    List<DuplicateGroupDTO> duplicates
+    List<DuplicateGroupDTO> duplicates,
+    List<FailedSentenceDTO> failedSentences,
+    double avgSentenceSeconds
 ) {
     public record LemmaStats(
         long total,
@@ -36,6 +38,11 @@ public record AdminStatsDTO(
         String processingStatus,
         String errorMessage,
         String updatedAt
+    ) {}
+
+    public record FailedSentenceDTO(
+        long id,
+        String text
     ) {}
 
     public record DuplicateGroupDTO(

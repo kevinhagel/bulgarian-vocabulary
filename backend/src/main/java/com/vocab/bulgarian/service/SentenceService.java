@@ -195,6 +195,16 @@ public class SentenceService {
     }
 
     /**
+     * Average successful sentence generation duration in seconds (this JVM session).
+     * Returns 120.0 as a fallback if no successful generations have completed yet.
+     */
+    public double getAvgSentenceGenerationSeconds() {
+        long count = successTimer.count();
+        if (count == 0) return 120.0;
+        return successTimer.mean(java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    /**
      * Batch backfill: queue sentence generation for all COMPLETED lemmas that have no sentences.
      * Called from the "Generate All" API endpoint. Runs up to 50 at a time to avoid flooding Ollama.
      *

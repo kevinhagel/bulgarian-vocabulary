@@ -45,6 +45,11 @@ interface DuplicateGroup {
   entries: DuplicateEntry[];
 }
 
+interface FailedSentence {
+  id: number;
+  text: string;
+}
+
 interface AdminStats {
   lemmas: LemmaStats;
   sentences: SentenceStats;
@@ -52,6 +57,8 @@ interface AdminStats {
   failedLemmas: IssueLemma[];
   stuckLemmas: IssueLemma[];
   duplicates: DuplicateGroup[];
+  failedSentences: FailedSentence[];
+  avgSentenceSeconds: number;
 }
 
 // --- Components ---
@@ -132,6 +139,11 @@ export function AdminDashboard() {
     queryKey: ['admin', 'stats'],
     queryFn: () => api.get<AdminStats>('/admin/stats').then(r => r.data),
     staleTime: 30_000,
+    refetchInterval: (query) => {
+      const d = query.state.data;
+      const active = (d?.sentences?.generating ?? 0) + (d?.sentences?.queued ?? 0);
+      return active > 0 ? 8_000 : false;
+    },
   });
 
   const clearCache = useMutation({
@@ -153,7 +165,7 @@ export function AdminDashboard() {
     <div className="text-center py-12 text-red-600">Failed to load admin stats.</div>
   );
 
-  const { lemmas, sentences, totalInflections, failedLemmas, stuckLemmas, duplicates } = stats;
+  const { lemmas, sentences, totalInflections, failedLemmas, stuckLemmas, duplicates, failedSentences, avgSentenceSeconds } = stats;
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -201,16 +213,74 @@ export function AdminDashboard() {
         </div>
       </section>
 
-      {/* Sentence stats */}
+      {/* Sentence generation */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Example sentences</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-gray-700">Example sentences</h3>
+          {(sentences.generating > 0 || sentences.queued > 0) && (
+            <span className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              Generating — auto-refreshing
+            </span>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        {(() => {
+          const total = sentences.done + sentences.none + sentences.queued + sentences.generating + sentences.failed;
+          const pct = total > 0 ? Math.round((sentences.done / total) * 100) : 0;
+          const remaining = sentences.none + sentences.queued + sentences.generating;
+          const estMinutes = remaining > 0 && avgSentenceSeconds > 0
+            ? Math.ceil((remaining * avgSentenceSeconds) / 60)
+            : 0;
+          return (
+            <div className="mb-4">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>{sentences.done} / {total} words have sentences ({pct}%)</span>
+                {remaining > 0 && estMinutes > 0 && (
+                  <span>~{estMinutes < 60 ? `${estMinutes} min` : `${Math.round(estMinutes/60)}h ${estMinutes%60}m`} remaining at {Math.round(avgSentenceSeconds)}s/word</span>
+                )}
+                {remaining === 0 && total > 0 && (
+                  <span className="text-green-600 font-medium">All done</span>
+                )}
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: pct === 100 ? '#16a34a' : sentences.generating > 0 ? '#3b82f6' : '#6366f1',
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Status cards */}
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
           <StatCard label="Done" value={sentences.done} color="green" />
           <StatCard label="None" value={sentences.none} />
           <StatCard label="Queued" value={sentences.queued} color="yellow" />
-          <StatCard label="Generating" value={sentences.generating} color="yellow" />
+          <StatCard label="Generating" value={sentences.generating} color="blue" />
           <StatCard label="Failed" value={sentences.failed} color="red" />
         </div>
+
+        {/* Failed sentence list */}
+        {failedSentences.length > 0 && (
+          <div className="mt-3 rounded border border-red-200 bg-red-50 p-3">
+            <p className="text-xs font-semibold text-red-700 mb-1.5">
+              Words where sentence generation failed ({failedSentences.length})
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {failedSentences.map(f => (
+                <span key={f.id} className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-800 font-medium">
+                  {f.text}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Failed lemmas */}
