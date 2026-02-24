@@ -96,7 +96,7 @@ async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         "/vault — Vault seal status\n"
         "/logs \\[name\\] — last 30 lines of container logs\n"
         "/cache\\_clear — clear Valkey LLM response cache\n"
-        "/restart colima|backend|all — restart a service\n"
+        "/restart colima\\|backend\\|all — restart a service\n"
     )
     await _send(update, text, md=True)
 
