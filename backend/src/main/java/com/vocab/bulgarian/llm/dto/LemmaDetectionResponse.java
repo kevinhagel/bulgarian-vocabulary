@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record LemmaDetectionResponse(
     @NotBlank String wordForm,       // The original word form submitted
-    @NotBlank String lemma,          // Detected lemma (dictionary form)
+    String lemma,                    // Detected lemma (dictionary form); null when detectionFailed=true
     String partOfSpeech,             // LLM's detected part of speech
     boolean detectionFailed          // True if detection failed (for fallback)
 ) {

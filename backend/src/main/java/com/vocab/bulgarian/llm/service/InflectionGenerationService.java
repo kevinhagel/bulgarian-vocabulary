@@ -8,7 +8,9 @@ import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -28,6 +30,10 @@ public class InflectionGenerationService {
     private final LlmOutputValidator validator;
     private final Timer successTimer;
     private final Timer failureTimer;
+
+    @Lazy
+    @Autowired
+    private InflectionGenerationService self;
 
     public InflectionGenerationService(ChatClient chatClient, LlmOutputValidator validator, MeterRegistry meterRegistry) {
         this.chatClient = chatClient;
@@ -52,7 +58,7 @@ public class InflectionGenerationService {
     @Async("llmTaskExecutor")
     public CompletableFuture<InflectionSet> generateInflectionsAsync(String lemma, String partOfSpeech) {
         log.debug("Async inflection generation requested for: {} ({})", lemma, partOfSpeech);
-        InflectionSet response = generateInflections(lemma, partOfSpeech);
+        InflectionSet response = self.generateInflections(lemma, partOfSpeech);
         return CompletableFuture.completedFuture(response);
     }
 

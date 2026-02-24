@@ -7,7 +7,7 @@ spring:
 
   config:
     import:
-      - optional:vault://
+      - vault://
 
   cloud:
     vault:
@@ -74,8 +74,8 @@ spring:
       chat:
         options:
           model: bggpt-vocab
-          temperature: 0.3
-          num-ctx: 2048
+          temperature: 0.0
+          num-ctx: 4096
 
   data:
     redis:
@@ -96,6 +96,14 @@ resilience4j:
         sliding-window-type: COUNT_BASED
         failure-rate-threshold: 50
         wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5
+        register-health-indicator: true
+      ollama-sentence:
+        sliding-window-size: 10
+        sliding-window-type: COUNT_BASED
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
         permitted-number-of-calls-in-half-open-state: 3
         minimum-number-of-calls: 5
         register-health-indicator: true
@@ -121,7 +129,7 @@ management:
         include: health,info,metrics,prometheus
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
   metrics:
     tags:
       application: ${spring.application.name}

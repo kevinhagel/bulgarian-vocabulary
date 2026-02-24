@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@bulgarian-vocab.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD must be set in .env}
       PGADMIN_CONFIG_SERVER_MODE: 'True'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True'
     ports:
@@ -86,7 +86,7 @@ services:
     environment:
       - REDIS_HOSTS=valkey:valkey:${VALKEY_PORT:-6379}:0
       - HTTP_USER=${REDIS_COMMANDER_USER:-admin}
-      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD:-admin123}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD:?REDIS_COMMANDER_PASSWORD must be set in .env}
     depends_on:
       valkey:
         condition: service_healthy
@@ -174,7 +174,7 @@ services:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set in .env}
       GF_USERS_ALLOW_SIGN_UP: 'false'
     volumes:
       - grafana-data:/var/lib/grafana

@@ -31,8 +31,6 @@ public interface LemmaRepository extends JpaRepository<Lemma, Long> {
 
     List<Lemma> findByDifficultyLevelOrderByTextAsc(DifficultyLevel difficultyLevel);
 
-    boolean existsByTextAndSource(String text, Source source);
-
     Optional<Lemma> findByTextIgnoreCase(String text);
 
     List<Lemma> findByReviewStatus(ReviewStatus reviewStatus);

@@ -9,8 +9,10 @@ import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,10 @@ public class SentenceGenerationService {
     private final LlmOutputValidator validator;
     private final Timer successTimer;
     private final Timer failureTimer;
+
+    @Lazy
+    @Autowired
+    private SentenceGenerationService self;
 
     public SentenceGenerationService(
             @Qualifier("sentenceChatClient") ChatClient sentenceChatClient,
@@ -49,7 +55,7 @@ public class SentenceGenerationService {
     @Async("llmTaskExecutor")
     public CompletableFuture<SentenceSet> generateSentencesAsync(String lemma, String translation, String partOfSpeech) {
         log.debug("Async sentence generation requested for: {}", lemma);
-        SentenceSet result = generateSentences(lemma, translation, partOfSpeech);
+        SentenceSet result = self.generateSentences(lemma, translation, partOfSpeech);
         return CompletableFuture.completedFuture(result);
     }
 

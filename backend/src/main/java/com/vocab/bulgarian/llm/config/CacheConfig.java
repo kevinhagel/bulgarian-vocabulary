@@ -47,6 +47,7 @@ public class CacheConfig {
         cacheConfigurations.put("inflectionGeneration", defaultConfig);
         cacheConfigurations.put("metadataGeneration", defaultConfig);
         cacheConfigurations.put("sentenceGeneration", defaultConfig);
+        cacheConfigurations.put("translations", defaultConfig);
 
         return RedisCacheManager.builder(connectionFactory)
             .cacheDefaults(defaultConfig)

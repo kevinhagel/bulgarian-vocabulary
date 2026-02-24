@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 
+function LastUpdated({ date }: { date: Date }) {
+  const fmt = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return <span className="text-xs text-gray-400">Updated {fmt}</span>;
+}
+
 // --- Types ---
 
 interface LemmaStats {
@@ -135,14 +140,14 @@ export function AdminDashboard() {
   const queryClient = useQueryClient();
   const [clearMsg, setClearMsg] = useState<string | null>(null);
 
-  const { data: stats, isLoading, isError, refetch } = useQuery<AdminStats>({
+  const { data: stats, isLoading, isError, isFetching, refetch, dataUpdatedAt } = useQuery<AdminStats>({
     queryKey: ['admin', 'stats'],
     queryFn: () => api.get<AdminStats>('/admin/stats').then(r => r.data),
-    staleTime: 30_000,
+    staleTime: 0,
     refetchInterval: (query) => {
       const d = query.state.data;
       const active = (d?.sentences?.generating ?? 0) + (d?.sentences?.queued ?? 0);
-      return active > 0 ? 8_000 : false;
+      return active > 0 ? 5_000 : 15_000;
     },
   });
 
@@ -171,7 +176,10 @@ export function AdminDashboard() {
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Admin Dashboard</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-gray-900">Admin Dashboard</h2>
+          {dataUpdatedAt > 0 && <LastUpdated date={new Date(dataUpdatedAt)} />}
+        </div>
         <div className="flex items-center gap-3">
           {clearMsg && <span className="text-sm text-green-600">{clearMsg}</span>}
           <button
@@ -183,8 +191,12 @@ export function AdminDashboard() {
           </button>
           <button
             onClick={() => refetch()}
-            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
+            disabled={isFetching}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-60"
           >
+            {isFetching && (
+              <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+            )}
             Refresh
           </button>
         </div>
@@ -217,11 +229,13 @@ export function AdminDashboard() {
       <section>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-gray-700">Example sentences</h3>
-          {(sentences.generating > 0 || sentences.queued > 0) && (
+          {(sentences.generating > 0 || sentences.queued > 0) ? (
             <span className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
               <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              Generating — auto-refreshing
+              Generating — refreshing every 5s
             </span>
+          ) : (
+            <span className="text-xs text-gray-400">refreshing every 15s</span>
           )}
         </div>
 

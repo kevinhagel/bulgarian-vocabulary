@@ -47,7 +47,7 @@ public class ProgressService {
             ? (int) Math.round((double) totalCorrect / totalCardsReviewed * 100)
             : 0;
         long cardsDueToday = srsStateRepository.countDueCards(LocalDate.now());
-        long newCards = srsStateRepository.findLemmaIdsWithoutSrsState().size();
+        long newCards = srsStateRepository.countLemmaIdsWithoutSrsState();
         return new ProgressDashboardDTO(totalUserVocab, totalVocabStudied, totalSessions,
             totalCardsReviewed, totalCorrect, retentionRate, cardsDueToday, newCards);
     }

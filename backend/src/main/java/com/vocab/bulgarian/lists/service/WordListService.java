@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Service
@@ -47,11 +48,12 @@ public class WordListService {
 
     @Transactional(readOnly = true)
     public List<WordListSummaryDTO> getAllLists() {
-        return listRepo.findAllOrderByName().stream()
-            .map(wl -> new WordListSummaryDTO(
-                wl.getId(), wl.getName(),
-                listRepo.countLemmasByListId(wl.getId()),
-                wl.getCreatedAt()))
+        return listRepo.findAllWithCounts().stream()
+            .map(row -> new WordListSummaryDTO(
+                (Long) row[0],
+                (String) row[1],
+                ((Number) row[2]).intValue(),
+                (ZonedDateTime) row[3]))
             .toList();
     }
 

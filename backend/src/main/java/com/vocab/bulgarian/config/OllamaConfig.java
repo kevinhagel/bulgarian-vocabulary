@@ -45,14 +45,9 @@ public class OllamaConfig {
 
     @Bean
     public OllamaChatModel ollamaChatModel(
-            @Value("${spring.ai.ollama.base-url}") String baseUrl,
+            OllamaApi ollamaApi,
             @Value("${spring.ai.ollama.chat.options.model}") String model,
             @Value("${spring.ai.ollama.chat.options.temperature}") Double temperature) {
-
-        var api = OllamaApi.builder()
-                .baseUrl(baseUrl)
-                .restClientBuilder(ollamaRestClientBuilder())
-                .build();
 
         var options = OllamaOptions.builder()
                 .model(model)
@@ -60,7 +55,7 @@ public class OllamaConfig {
                 .build();
 
         return OllamaChatModel.builder()
-                .ollamaApi(api)
+                .ollamaApi(ollamaApi)
                 .defaultOptions(options)
                 .build();
     }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -19,6 +20,8 @@ import java.util.stream.Collectors;
  */
 @Component
 public class LlmOutputValidator {
+
+    private static final Pattern CYRILLIC = Pattern.compile(".*\\p{InCyrillic}.*", Pattern.DOTALL);
 
     private final Validator validator;
 
@@ -202,7 +205,7 @@ public class LlmOutputValidator {
         if (text == null) {
             return false;
         }
-        return text.matches(".*[а-яА-Я].*");
+        return CYRILLIC.matcher(text).matches();
     }
 
     /**

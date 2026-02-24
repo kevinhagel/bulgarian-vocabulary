@@ -1,0 +1,6 @@
+python-telegram-bot[job-queue]==22.6
+httpx==0.28.1
+psycopg2-binary==2.9.11
+redis==7.2.0
+python-dotenv==1.2.1
+APScheduler==3.11.2

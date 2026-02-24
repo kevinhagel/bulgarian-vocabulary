@@ -1,5 +1,6 @@
 package com.vocab.bulgarian.config;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,11 +28,17 @@ public class SecurityConfig {
     @Value("${app.admin-email}")
     private String adminEmail;
 
+    @PostConstruct
+    private void normalizeAllowedEmails() {
+        allowedEmails = allowedEmails.stream().map(String::toLowerCase).toList();
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
+                .requestMatchers("/actuator/**").authenticated()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -59,7 +66,7 @@ public class SecurityConfig {
             OidcUser user = delegate.loadUser(request);
             String email = user.getAttribute("email");
             if (email == null || !allowedEmails.contains(email.toLowerCase())) {
-                throw new OAuth2AuthenticationException("Email not authorized: " + email);
+                throw new OAuth2AuthenticationException("access_denied");
             }
             // Preserve existing OIDC authorities (OidcUserAuthority, SCOPE_*) and add role grants
             var authorities = new LinkedHashSet<org.springframework.security.core.GrantedAuthority>(user.getAuthorities());

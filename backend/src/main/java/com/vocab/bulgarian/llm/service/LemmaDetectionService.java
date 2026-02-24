@@ -8,7 +8,9 @@ import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -28,6 +30,10 @@ public class LemmaDetectionService {
     private final LlmOutputValidator validator;
     private final Timer successTimer;
     private final Timer failureTimer;
+
+    @Lazy
+    @Autowired
+    private LemmaDetectionService self;
 
     public LemmaDetectionService(ChatClient chatClient, LlmOutputValidator validator, MeterRegistry meterRegistry) {
         this.chatClient = chatClient;
@@ -51,7 +57,7 @@ public class LemmaDetectionService {
     @Async("llmTaskExecutor")
     public CompletableFuture<LemmaDetectionResponse> detectLemmaAsync(String wordForm, String translationHint) {
         log.debug("Async lemma detection requested for: {} (hint: {})", wordForm, translationHint);
-        LemmaDetectionResponse response = detectLemma(wordForm, translationHint);
+        LemmaDetectionResponse response = self.detectLemma(wordForm, translationHint);
         return CompletableFuture.completedFuture(response);
     }
 

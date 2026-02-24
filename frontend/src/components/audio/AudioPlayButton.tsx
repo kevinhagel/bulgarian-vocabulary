@@ -1,8 +1,21 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import api from '@/lib/api';
 
-// Module-level cache to avoid re-generating audio for the same text
+// Module-level cache to avoid re-generating audio for the same text.
+// Bounded to MAX_CACHE_SIZE entries; oldest entry is evicted when the limit is reached.
+const MAX_CACHE_SIZE = 50;
 const audioCache = new Map<string, string>();
+
+function setCacheEntry(key: string, value: string): void {
+  if (audioCache.size >= MAX_CACHE_SIZE) {
+    // Maps preserve insertion order, so the first key is the oldest entry.
+    const firstKey = audioCache.keys().next().value;
+    if (firstKey !== undefined) {
+      audioCache.delete(firstKey);
+    }
+  }
+  audioCache.set(key, value);
+}
 
 interface AudioPlayButtonProps {
   text: string;
@@ -21,6 +34,19 @@ export function AudioPlayButton({ text, className = '' }: AudioPlayButtonProps) 
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Cleanup on unmount: stop playback and release the src so the browser can
+  // garbage-collect the underlying media resource. This prevents stale-closure
+  // callbacks (onplay/onended/onerror) from calling setState on an unmounted
+  // component after the element fires events during or after teardown.
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+    };
+  }, []);
+
   const handlePlay = async () => {
     try {
       setIsLoading(true);
@@ -33,7 +59,7 @@ export function AudioPlayButton({ text, className = '' }: AudioPlayButtonProps) 
         const response = await api.post<{ filename: string }>('/audio/generate', { text });
         const filename = response.data.filename;
         audioUrl = `/api/audio/${filename}`;
-        audioCache.set(text, audioUrl);
+        setCacheEntry(text, audioUrl);
       }
 
       // Create or reuse audio element

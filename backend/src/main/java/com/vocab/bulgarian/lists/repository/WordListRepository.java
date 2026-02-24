@@ -14,6 +14,9 @@ public interface WordListRepository extends JpaRepository<WordList, Long> {
     @Query("SELECT wl FROM WordList wl ORDER BY wl.name ASC")
     List<WordList> findAllOrderByName();
 
+    @Query("SELECT wl.id, wl.name, COUNT(l.id), wl.createdAt FROM WordList wl LEFT JOIN wl.lemmas l GROUP BY wl.id, wl.name, wl.createdAt ORDER BY wl.name ASC")
+    List<Object[]> findAllWithCounts();
+
     @Query("SELECT wl FROM WordList wl LEFT JOIN FETCH wl.lemmas WHERE wl.id = :id")
     Optional<WordList> findByIdWithLemmas(@Param("id") Long id);
 

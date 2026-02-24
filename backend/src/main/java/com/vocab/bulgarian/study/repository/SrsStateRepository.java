@@ -27,4 +27,13 @@ public interface SrsStateRepository extends JpaRepository<SrsState, Long> {
         AND l.id NOT IN (SELECT s.lemma.id FROM SrsState s)
         """)
     List<Long> findLemmaIdsWithoutSrsState();
+
+    @Query("""
+        SELECT COUNT(l.id) FROM Lemma l
+        WHERE l.source = com.vocab.bulgarian.domain.enums.Source.USER_ENTERED
+        AND l.processingStatus = com.vocab.bulgarian.domain.enums.ProcessingStatus.COMPLETED
+        AND l.reviewStatus = com.vocab.bulgarian.domain.enums.ReviewStatus.REVIEWED
+        AND l.id NOT IN (SELECT s.lemma.id FROM SrsState s)
+        """)
+    long countLemmaIdsWithoutSrsState();
 }

@@ -8,7 +8,9 @@ import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -28,6 +30,10 @@ public class MetadataGenerationService {
     private final LlmOutputValidator validator;
     private final Timer successTimer;
     private final Timer failureTimer;
+
+    @Lazy
+    @Autowired
+    private MetadataGenerationService self;
 
     public MetadataGenerationService(ChatClient chatClient, LlmOutputValidator validator, MeterRegistry meterRegistry) {
         this.chatClient = chatClient;
@@ -51,7 +57,7 @@ public class MetadataGenerationService {
     @Async("llmTaskExecutor")
     public CompletableFuture<LemmaMetadata> generateMetadataAsync(String lemma, String translationHint) {
         log.debug("Async metadata generation requested for: {} (hint: {})", lemma, translationHint);
-        LemmaMetadata response = generateMetadata(lemma, translationHint);
+        LemmaMetadata response = self.generateMetadata(lemma, translationHint);
         return CompletableFuture.completedFuture(response);
     }
 

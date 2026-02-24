@@ -29,3 +29,5 @@ node_modules/.vite/
 
 # Audio storage (large files)
 storage/
+telegram-bot/.env
+telegram-bot/bot.log
