@@ -6,7 +6,10 @@ from datetime import datetime, date
 import httpx
 
 import config
+from config import BOT_API_KEY
 from vocab import get_admin_stats, get_progress, search_word, format_word_lookup
+
+_HEADERS = {"X-Bot-Token": BOT_API_KEY}
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +21,7 @@ def _is_quiet() -> bool:
 
 async def _pick_word_of_day() -> dict | None:
     """Pick a random word from vocabulary for the daily message."""
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=10, headers=_HEADERS) as client:
         try:
             # Get a page of vocabulary — pick a random entry
             r = await client.get(

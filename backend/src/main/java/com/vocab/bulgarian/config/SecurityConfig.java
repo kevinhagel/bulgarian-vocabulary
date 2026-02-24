@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,6 +28,12 @@ public class SecurityConfig {
 
     @Value("${app.admin-email}")
     private String adminEmail;
+
+    private final BotAuthFilter botAuthFilter;
+
+    public SecurityConfig(BotAuthFilter botAuthFilter) {
+        this.botAuthFilter = botAuthFilter;
+    }
 
     @PostConstruct
     private void normalizeAllowedEmails() {
@@ -55,7 +62,8 @@ public class SecurityConfig {
             )
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/**")
-            );
+            )
+            .addFilterBefore(botAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

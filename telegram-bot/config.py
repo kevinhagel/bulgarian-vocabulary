@@ -7,6 +7,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = int(os.environ["CHAT_ID"])
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8080")
+BOT_API_KEY = os.environ["BOT_API_KEY"]
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")

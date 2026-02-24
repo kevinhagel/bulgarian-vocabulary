@@ -1,10 +1,12 @@
 """Spring Boot API client — vocabulary, stats, admin."""
 import httpx
-from config import BACKEND_URL
+from config import BACKEND_URL, BOT_API_KEY
+
+_HEADERS = {"X-Bot-Token": BOT_API_KEY}
 
 
 async def get_admin_stats() -> dict | None:
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=10, headers=_HEADERS) as client:
         try:
             r = await client.get(f"{BACKEND_URL}/api/admin/stats")
             r.raise_for_status()
@@ -14,7 +16,7 @@ async def get_admin_stats() -> dict | None:
 
 
 async def get_progress() -> dict | None:
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=10, headers=_HEADERS) as client:
         try:
             r = await client.get(f"{BACKEND_URL}/api/study/progress")
             r.raise_for_status()
@@ -24,7 +26,7 @@ async def get_progress() -> dict | None:
 
 
 async def search_word(query: str) -> list[dict]:
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=10, headers=_HEADERS) as client:
         try:
             r = await client.get(f"{BACKEND_URL}/api/vocabulary/search", params={"q": query})
             r.raise_for_status()
@@ -34,7 +36,7 @@ async def search_word(query: str) -> list[dict]:
 
 
 async def get_lemma(lemma_id: int) -> dict | None:
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=10, headers=_HEADERS) as client:
         try:
             r = await client.get(f"{BACKEND_URL}/api/vocabulary/{lemma_id}")
             r.raise_for_status()
@@ -44,7 +46,7 @@ async def get_lemma(lemma_id: int) -> dict | None:
 
 
 async def clear_cache() -> bool:
-    async with httpx.AsyncClient(timeout=10) as client:
+    async with httpx.AsyncClient(timeout=10, headers=_HEADERS) as client:
         try:
             r = await client.post(f"{BACKEND_URL}/api/admin/cache/clear")
             return r.status_code == 204
