@@ -166,9 +166,15 @@ def ollama_status() -> dict:
         return {"running": False, "model": "", "processor": ""}
     lines = result.stdout.strip().splitlines()
     if len(lines) < 2:
-        return {"running": True, "model": "none loaded", "processor": ""}
-    # NAME   ID   SIZE   PROCESSOR   UNTIL
-    parts = lines[1].split()
-    model = parts[0] if parts else "?"
-    processor = parts[3] if len(parts) > 3 else "?"
+        return {"running": True, "model": "none loaded (idle)", "processor": ""}
+    # Header: NAME  ID  SIZE  PROCESSOR  CONTEXT  UNTIL
+    # Use header offsets — more reliable than splitting on whitespace
+    # because SIZE contains a space ("5.1 GB").
+    header = lines[0]
+    name_start      = 0
+    processor_start = header.index("PROCESSOR")
+    context_start   = header.index("CONTEXT")
+    data = lines[1]
+    model     = data[name_start:processor_start].split()[0] if data else "?"
+    processor = data[processor_start:context_start].strip() if len(data) > processor_start else "?"
     return {"running": True, "model": model, "processor": processor}
