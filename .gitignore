@@ -31,3 +31,4 @@ node_modules/.vite/
 storage/
 telegram-bot/.env
 telegram-bot/bot.log
+telegram-bot/__pycache__/
