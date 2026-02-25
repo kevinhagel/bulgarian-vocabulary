@@ -86,6 +86,14 @@ public class LemmaDetectionService {
             For nouns, the lemma is the singular indefinite form.
             For adjectives, the lemma is the masculine singular indefinite form.
 
+            CRITICAL for verbs: preserve the exact aspect (вид) of the input word.
+            Bulgarian has imperfective (несвършен) and perfective (свършен) verb pairs — they are different lemmas.
+            Examples:
+            - "отиваме" (imperfective, we go) → lemma is "отивам" (NOT "отида" which is perfective)
+            - "отидем" (perfective, we go) → lemma is "отида"
+            - "правим" (imperfective, we do) → lemma is "правя" (NOT "направя" which is perfective)
+            Always give the lemma of the SAME verb that was entered, not its aspectual pair.
+
             Respond in JSON format matching this structure:
             {
               "wordForm": "the original word",
