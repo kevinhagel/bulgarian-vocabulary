@@ -67,6 +67,7 @@ export interface LemmaDetailDTO {
   inflections: InflectionDTO[];
   exampleSentences: ExampleSentenceDTO[];
   sentenceStatus: SentenceStatus;
+  dictionaryWordId: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -75,6 +76,7 @@ export interface CreateLemmaRequest {
   wordForm: string;
   translation: string;
   notes?: string;
+  dictionaryWordId?: number;
 }
 
 export interface InflectionUpdate {

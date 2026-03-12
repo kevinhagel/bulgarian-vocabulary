@@ -18,6 +18,8 @@ public record CreateLemmaRequestDTO(
     String translation, // Optional - auto-generated if null
 
     @Size(max = 5000)
-    String notes
+    String notes,
+
+    Long dictionaryWordId // Optional - if set, creates from dictionary data directly
 ) {
 }

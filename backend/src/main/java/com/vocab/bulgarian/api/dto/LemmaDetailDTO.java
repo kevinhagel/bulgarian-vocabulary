@@ -26,6 +26,7 @@ public record LemmaDetailDTO(
     List<InflectionDTO> inflections,
     List<ExampleSentenceDTO> exampleSentences,
     SentenceStatus sentenceStatus,
+    Long dictionaryWordId,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {

@@ -131,6 +131,7 @@ services:
     volumes:
       - ${HOME}/.vault-token:/root/.vault-token:ro
       - audio-data:/app/storage
+      - ./data:/app/data:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -176,6 +177,10 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set in .env}
       GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_ROOT_URL: https://hagelbg.dyndns-ip.com/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
     volumes:
       - grafana-data:/var/lib/grafana
       - ./config/grafana/provisioning:/etc/grafana/provisioning:ro

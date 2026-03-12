@@ -2,6 +2,10 @@ package com.vocab.bulgarian.service;
 
 import com.vocab.bulgarian.api.dto.*;
 import com.vocab.bulgarian.api.mapper.LemmaMapper;
+import com.vocab.bulgarian.dictionary.domain.DictionaryForm;
+import com.vocab.bulgarian.dictionary.domain.DictionaryWord;
+import com.vocab.bulgarian.dictionary.service.DictionaryService;
+import com.vocab.bulgarian.domain.Inflection;
 import com.vocab.bulgarian.domain.Lemma;
 import com.vocab.bulgarian.domain.enums.DifficultyLevel;
 import com.vocab.bulgarian.domain.enums.PartOfSpeech;
@@ -11,6 +15,8 @@ import com.vocab.bulgarian.domain.enums.Source;
 import com.vocab.bulgarian.llm.service.LlmOrchestrationService;
 import com.vocab.bulgarian.repository.LemmaRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,20 +36,25 @@ import java.util.concurrent.CompletableFuture;
 @Transactional(readOnly = true)
 public class VocabularyService {
 
+    private static final Logger log = LoggerFactory.getLogger(VocabularyService.class);
+
     private final LemmaRepository lemmaRepository;
     private final LlmOrchestrationService llmOrchestrationService;
     private final BackgroundProcessingService backgroundProcessingService;
+    private final DictionaryService dictionaryService;
     private final LemmaMapper lemmaMapper;
 
     public VocabularyService(
         LemmaRepository lemmaRepository,
         LlmOrchestrationService llmOrchestrationService,
         BackgroundProcessingService backgroundProcessingService,
+        DictionaryService dictionaryService,
         LemmaMapper lemmaMapper
     ) {
         this.lemmaRepository = lemmaRepository;
         this.llmOrchestrationService = llmOrchestrationService;
         this.backgroundProcessingService = backgroundProcessingService;
+        this.dictionaryService = dictionaryService;
         this.lemmaMapper = lemmaMapper;
     }
 
@@ -56,19 +68,95 @@ public class VocabularyService {
      */
     @Transactional
     public CompletableFuture<LemmaDetailDTO> createVocabulary(CreateLemmaRequestDTO request) {
-        // Step 1: Create lemma entity with user input (translation optional)
+        return createVocabulary(request, null);
+    }
+
+    /**
+     * Create vocabulary entry, optionally from a specific dictionary word.
+     * If dictionaryWordId is provided, creates directly from dictionary data (instant).
+     * Otherwise searches dictionary by form; falls back to BgGPT if not found.
+     */
+    @Transactional
+    public CompletableFuture<LemmaDetailDTO> createVocabulary(CreateLemmaRequestDTO request, Long dictionaryWordId) {
+        String wordForm = request.wordForm().trim().toLowerCase();
+
+        // Try dictionary first
+        DictionaryWord dictWord = null;
+
+        if (dictionaryWordId != null) {
+            // Explicit dictionary word selection (e.g. user picked from search results)
+            dictWord = dictionaryService.findWordById(dictionaryWordId).orElse(null);
+        } else {
+            // Search dictionary by the entered form
+            var results = dictionaryService.searchByForm(wordForm);
+            if (results.size() == 1) {
+                // Unambiguous match — use it directly
+                dictWord = dictionaryService.findWordById(results.getFirst().dictionaryWordId()).orElse(null);
+            }
+            // If multiple matches, fall through to LLM pipeline.
+            // Frontend should use /api/dictionary/search to let user pick first.
+        }
+
+        if (dictWord != null) {
+            return CompletableFuture.completedFuture(createFromDictionary(dictWord, request));
+        }
+
+        // Fallback: LLM pipeline (existing behavior)
+        return createFromLlm(request, wordForm);
+    }
+
+    /**
+     * Create a vocabulary entry directly from dictionary data. Instant, no LLM needed.
+     */
+    private LemmaDetailDTO createFromDictionary(DictionaryWord dictWord, CreateLemmaRequestDTO request) {
+        log.info("Creating vocabulary from dictionary: {} ({})", dictWord.getWord(), dictWord.getPos());
+
         Lemma lemma = new Lemma();
-        lemma.setText(request.wordForm().trim().toLowerCase()); // Will be updated to canonical form during background processing
-        lemma.setTranslation(request.translation()); // May be null - auto-translated in background
+        lemma.setText(dictWord.getWord());
+        lemma.setTranslation(request.translation() != null ? request.translation() : dictWord.getPrimaryTranslation());
+        lemma.setNotes(request.notes());
+        lemma.setSource(Source.USER_ENTERED);
+        lemma.setPartOfSpeech(mapPos(dictWord.getPos()));
+        lemma.setReviewStatus(ReviewStatus.REVIEWED); // Dictionary data is authoritative
+        lemma.setProcessingStatus(ProcessingStatus.COMPLETED);
+        lemma.setDictionaryWordId(dictWord.getId());
+
+        // Create inflections from dictionary forms
+        List<DictionaryForm> dictForms = dictionaryService.getFormsForWord(dictWord.getId());
+        for (DictionaryForm df : dictForms) {
+            String[] tags = df.getTags();
+            // Skip meta entries
+            if (tags == null) continue;
+            List<String> tagList = Arrays.asList(tags);
+            if (tagList.contains("romanization") || tagList.contains("table-tags")
+                    || tagList.contains("inflection-template")) {
+                continue;
+            }
+
+            Inflection inflection = new Inflection();
+            inflection.setForm(df.getPlainForm());
+            inflection.setAccentedForm(df.getAccentedForm());
+            inflection.setGrammaticalInfo(String.join(", ", tags));
+            lemma.addInflection(inflection);
+        }
+
+        Lemma saved = lemmaRepository.save(lemma);
+        log.info("Created vocabulary from dictionary: id={}, word={}, inflections={}",
+                saved.getId(), saved.getText(), saved.getInflections().size());
+        return lemmaMapper.toDetailDTO(saved);
+    }
+
+    private CompletableFuture<LemmaDetailDTO> createFromLlm(CreateLemmaRequestDTO request, String wordForm) {
+        Lemma lemma = new Lemma();
+        lemma.setText(wordForm);
+        lemma.setTranslation(request.translation());
         lemma.setNotes(request.notes());
         lemma.setSource(Source.USER_ENTERED);
         lemma.setReviewStatus(ReviewStatus.PENDING);
         lemma.setProcessingStatus(ProcessingStatus.QUEUED);
 
-        // Step 2: Save immediately (returns in < 1 second)
         Lemma saved = lemmaRepository.save(lemma);
 
-        // Step 3: Trigger background processing after TX commits (lemma must be visible to async thread)
         Long lemmaId = saved.getId();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -77,8 +165,26 @@ public class VocabularyService {
             }
         });
 
-        // Step 4: Return saved entry with QUEUED status
         return CompletableFuture.completedFuture(lemmaMapper.toDetailDTO(saved));
+    }
+
+    /**
+     * Map Kaikki POS string to our PartOfSpeech enum.
+     */
+    private PartOfSpeech mapPos(String kaikkiPos) {
+        return switch (kaikkiPos.toLowerCase()) {
+            case "noun" -> PartOfSpeech.NOUN;
+            case "verb" -> PartOfSpeech.VERB;
+            case "adj" -> PartOfSpeech.ADJECTIVE;
+            case "adv" -> PartOfSpeech.ADVERB;
+            case "pron" -> PartOfSpeech.PRONOUN;
+            case "prep" -> PartOfSpeech.PREPOSITION;
+            case "conj" -> PartOfSpeech.CONJUNCTION;
+            case "num" -> PartOfSpeech.NUMERAL;
+            case "intj" -> PartOfSpeech.INTERJECTION;
+            case "particle" -> PartOfSpeech.PARTICLE;
+            default -> null;
+        };
     }
 
     /**

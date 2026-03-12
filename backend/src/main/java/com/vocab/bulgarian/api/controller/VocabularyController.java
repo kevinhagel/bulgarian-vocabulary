@@ -42,7 +42,7 @@ public class VocabularyController {
     public CompletableFuture<ResponseEntity<LemmaDetailDTO>> createVocabulary(
         @Validated(OnCreate.class) @RequestBody CreateLemmaRequestDTO request
     ) {
-        return vocabularyService.createVocabulary(request)
+        return vocabularyService.createVocabulary(request, request.dictionaryWordId())
             .thenApply(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto));
     }
 

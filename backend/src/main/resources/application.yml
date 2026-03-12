@@ -55,7 +55,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
-          batch_size: 20
+          batch_size: 50
         order_inserts: true
         order_updates: true
 
@@ -140,5 +140,5 @@ server:
 
 # Email allowlist for Google OAuth
 app:
-  allowed-emails: ${ALLOWED_EMAIL_KEVIN},${ALLOWED_EMAIL_HUW},${ALLOWED_EMAIL_ELENA:nobody@example.invalid}
+  allowed-emails: ${ALLOWED_EMAIL_KEVIN},${ALLOWED_EMAIL_HUW},${ALLOWED_EMAIL_ELENA:nobody@example.invalid},${ALLOWED_EMAIL_LEO:nobody@example.invalid},${ALLOWED_EMAIL_NEDDA:nobody@example.invalid}
   admin-email: ${ALLOWED_EMAIL_KEVIN}

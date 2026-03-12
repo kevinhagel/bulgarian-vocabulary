@@ -95,6 +95,9 @@ public class Lemma {
     @Column(name = "sentence_status", nullable = false, length = 20)
     private SentenceStatus sentenceStatus = SentenceStatus.NONE;
 
+    @Column(name = "dictionary_word_id")
+    private Long dictionaryWordId;
+
     // Lifecycle callbacks
     @PrePersist
     protected void onCreate() {
@@ -275,5 +278,13 @@ public class Lemma {
 
     public void setSentenceStatus(SentenceStatus sentenceStatus) {
         this.sentenceStatus = sentenceStatus;
+    }
+
+    public Long getDictionaryWordId() {
+        return dictionaryWordId;
+    }
+
+    public void setDictionaryWordId(Long dictionaryWordId) {
+        this.dictionaryWordId = dictionaryWordId;
     }
 }
