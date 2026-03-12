@@ -32,3 +32,6 @@ storage/
 telegram-bot/.env
 telegram-bot/bot.log
 telegram-bot/__pycache__/
+
+# Reference dictionary data (large files)
+data/
