@@ -258,7 +258,7 @@ export function VocabularyDetail({ lemmaId, onBack }: VocabularyDetailProps) {
         {/* Inflections section */}
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            Inflections ({lemma.inflections.length})
+            Inflections{lemma.inflections.length > 0 ? ` (${lemma.inflections.length})` : ''}
           </h2>
           <InflectionsTable inflections={lemma.inflections} partOfSpeech={lemma.partOfSpeech} />
         </div>
