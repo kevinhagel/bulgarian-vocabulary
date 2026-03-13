@@ -101,3 +101,22 @@ export interface PaginatedResponse<T> {
   first: boolean;
   last: boolean;
 }
+
+// Dictionary search types (mirrors backend DTOs)
+export interface DictionaryFormDTO {
+  form: string;
+  plainForm: string;
+  tags: string[];
+  accentedForm: string | null;
+  romanization: string | null;
+}
+
+export interface DictionarySearchResultDTO {
+  dictionaryWordId: number;
+  word: string;
+  pos: string;
+  primaryTranslation: string;
+  alternateMeanings: string[];
+  ipa: string | null;
+  forms: DictionaryFormDTO[];
+}

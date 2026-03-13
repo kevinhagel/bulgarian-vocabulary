@@ -63,8 +63,8 @@ function App() {
   return (
     <Layout>
       {/* Tab navigation */}
-      <div className="border-b border-gray-200 mb-6 -mt-2">
-        <nav className="flex gap-1">
+      <div className="border-b border-gray-200 mb-6 -mt-2 overflow-x-auto">
+        <nav className="flex gap-1 min-w-max">
           <button
             onClick={() => handleSwitchTab('vocabulary')}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${

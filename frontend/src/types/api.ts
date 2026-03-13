@@ -14,4 +14,6 @@ export type {
   InflectionUpdate,
   UpdateLemmaRequest,
   PaginatedResponse,
+  DictionaryFormDTO,
+  DictionarySearchResultDTO,
 } from '@/features/vocabulary/types';

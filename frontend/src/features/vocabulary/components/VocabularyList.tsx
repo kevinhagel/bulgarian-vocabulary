@@ -83,9 +83,9 @@ export function VocabularyList({ onViewDetail, onNavigateStudy }: VocabularyList
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Vocabulary</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {totalDue > 0 && onNavigateStudy && (
             <button
               onClick={onNavigateStudy}

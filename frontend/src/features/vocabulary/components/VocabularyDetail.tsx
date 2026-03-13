@@ -229,6 +229,11 @@ export function VocabularyDetail({ lemmaId, onBack }: VocabularyDetailProps) {
             <span className={`px-3 py-1.5 text-sm font-medium rounded-full ${getReviewStatusColor(lemma.reviewStatus)}`}>
               {formatEnumLabel(lemma.reviewStatus)}
             </span>
+            {lemma.dictionaryWordId && (
+              <span className="px-3 py-1.5 text-sm font-medium rounded-full bg-emerald-100 text-emerald-800">
+                Dictionary
+              </span>
+            )}
           </div>
           <div className="mt-4 text-sm text-gray-600 space-y-1">
             <p>
