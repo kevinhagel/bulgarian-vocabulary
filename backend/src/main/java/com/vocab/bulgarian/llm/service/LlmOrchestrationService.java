@@ -54,17 +54,23 @@ public class LlmOrchestrationService {
 
         // Step 1: Detect lemma
         return lemmaDetectionService.detectLemmaAsync(wordForm, translationHint)
-            .thenCompose(lemmaDetection -> {
-                // Check if lemma detection failed
-                if (lemmaDetection.detectionFailed()) {
-                    log.warn("Lemma detection failed for: {}", wordForm);
-                    List<String> warnings = List.of("Lemma detection failed");
-                    return CompletableFuture.completedFuture(
-                        new LlmProcessingResult(wordForm, lemmaDetection, null, null, false, warnings)
-                    );
+            .thenCompose(rawDetection -> {
+                // If BgGPT fails to identify the lemma, fall back to the input word form itself.
+                // This allows words like adjective inflections (e.g. "любима" → lemma "любима")
+                // to still be processed — inflection/metadata generation will run and the user
+                // can correct the lemma text manually if needed.
+                final LemmaDetectionResponse lemmaDetection;
+                final boolean detectionUsedFallback;
+                if (rawDetection.detectionFailed()) {
+                    log.warn("Lemma detection failed for '{}', falling back to input word form as lemma", wordForm);
+                    lemmaDetection = new LemmaDetectionResponse(wordForm, wordForm, null, false);
+                    detectionUsedFallback = true;
+                } else {
+                    lemmaDetection = rawDetection;
+                    detectionUsedFallback = false;
                 }
 
-                log.info("Lemma detected: {} for word form: {}", lemmaDetection.lemma(), wordForm);
+                log.info("Lemma: {} for word form: {}", lemmaDetection.lemma(), wordForm);
 
                 // Step 2: Fan out to parallel inflection and metadata generation.
                 // If the user's hint explicitly names a part of speech, trust it over the LLM —
@@ -87,9 +93,12 @@ public class LlmOrchestrationService {
                 // Step 3: Combine results
                 return inflectionsFuture.thenCombine(metadataFuture, (inflections, metadata) -> {
                     List<String> warnings = new ArrayList<>();
-                    boolean fullySuccessful = true;
+                    boolean fullySuccessful = !detectionUsedFallback;
 
-                    // Check for partial failures
+                    if (detectionUsedFallback) {
+                        warnings.add("Lemma detection failed — using input word form as lemma");
+                    }
+
                     if (inflections == null) {
                         warnings.add("Inflection generation failed");
                         fullySuccessful = false;

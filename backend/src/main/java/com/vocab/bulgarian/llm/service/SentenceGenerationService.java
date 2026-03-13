@@ -79,6 +79,7 @@ public class SentenceGenerationService {
             - Include a mix of contexts (everyday conversation, questions, descriptions)
             - Bulgarian text must be grammatically correct
             - Translations must be accurate English
+            - CRITICAL: Do not use ASCII double quote characters (") inside Bulgarian or English text values — they break JSON parsing. If you need quotation marks within a sentence, use single quotes (') instead.
 
             Respond ONLY in this exact JSON format:
             {

@@ -9,3 +9,10 @@ scrape_configs:
       - targets: ['host.docker.internal:8080']
         labels:
           application: 'bulgarian-vocabulary'
+
+  - job_name: 'tiinova-programme-agent'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:8010']
+        labels:
+          application: 'tiinova-programme-agent'
