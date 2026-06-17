@@ -53,19 +53,22 @@ public class SentenceGenerationService {
     }
 
     @Async("llmTaskExecutor")
-    public CompletableFuture<SentenceSet> generateSentencesAsync(String lemma, String translation, String partOfSpeech) {
+    public CompletableFuture<SentenceSet> generateSentencesAsync(String lemma, String translation, String partOfSpeech, String notes) {
         log.debug("Async sentence generation requested for: {}", lemma);
-        SentenceSet result = self.generateSentences(lemma, translation, partOfSpeech);
+        SentenceSet result = self.generateSentences(lemma, translation, partOfSpeech, notes);
         return CompletableFuture.completedFuture(result);
     }
 
     @Cacheable(value = "sentenceGeneration", key = "#lemma.trim().toLowerCase()")
     @CircuitBreaker(name = "ollama-sentence", fallbackMethod = "generateSentencesFallback")
-    SentenceSet generateSentences(String lemma, String translation, String partOfSpeech) {
+    SentenceSet generateSentences(String lemma, String translation, String partOfSpeech, String notes) {
         String normalizedLemma = lemma.trim().toLowerCase();
         String posLabel = (partOfSpeech != null && !partOfSpeech.isBlank()) ? partOfSpeech.toLowerCase() : "word";
         String translationClause = (translation != null && !translation.isBlank())
             ? ", means \"" + translation + "\""
+            : "";
+        String hintClause = (notes != null && !notes.isBlank())
+            ? "\n            - The user's hint for this word is: \"" + notes + "\" — use this meaning"
             : "";
 
         log.info("Calling Qwen 2.5 14B for sentence generation: {}", normalizedLemma);
@@ -77,8 +80,9 @@ public class SentenceGenerationService {
             - Each sentence must clearly feature "%s" used naturally
             - Sentences should progress from simple to more complex
             - Include a mix of contexts (everyday conversation, questions, descriptions)
+            - Use everyday, secular contexts only — no religious themes
             - Bulgarian text must be grammatically correct
-            - Translations must be accurate English
+            - Translations must be accurate English%s
             - CRITICAL: Do not use ASCII double quote characters (") inside Bulgarian or English text values — they break JSON parsing. If you need quotation marks within a sentence, use single quotes (') instead.
 
             Respond ONLY in this exact JSON format:
@@ -91,7 +95,7 @@ public class SentenceGenerationService {
                 {"bulgarianText": "...", "englishTranslation": "..."}
               ]
             }
-            """, posLabel, normalizedLemma, translationClause, normalizedLemma, normalizedLemma);
+            """, posLabel, normalizedLemma, translationClause, normalizedLemma, hintClause, normalizedLemma);
 
         Timer.Sample sample = Timer.start();
         try {
@@ -120,7 +124,7 @@ public class SentenceGenerationService {
     }
 
     @SuppressWarnings("unused")
-    SentenceSet generateSentencesFallback(String lemma, String translation, String partOfSpeech, Exception ex) {
+    SentenceSet generateSentencesFallback(String lemma, String translation, String partOfSpeech, String notes, Exception ex) {
         log.warn("Circuit breaker activated for sentence generation of {}: {}", lemma, ex.getMessage());
         return null;
     }

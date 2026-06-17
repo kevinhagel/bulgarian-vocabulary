@@ -55,6 +55,7 @@ services:
       - postgres
     networks:
       - bulgarian-vocab
+      - tiinova-network
 
   # Valkey (Redis-compatible) for LLM response caching
   valkey:
@@ -177,7 +178,7 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set in .env}
       GF_USERS_ALLOW_SIGN_UP: 'false'
-      GF_SERVER_ROOT_URL: https://hagelbg.dyndns-ip.com/grafana/
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
       GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
       GF_AUTH_ANONYMOUS_ENABLED: 'true'
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
@@ -199,3 +200,5 @@ volumes:
 networks:
   bulgarian-vocab:
     driver: bridge
+  tiinova-network:
+    external: true

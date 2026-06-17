@@ -125,7 +125,7 @@ public class SentenceService {
         logger.info("Sentence generation started — lemma ID: {}", lemmaId);
 
         // TX 1: load lemma info, mark GENERATING
-        record LemmaInfo(String text, String translation, String partOfSpeech) {}
+        record LemmaInfo(String text, String translation, String partOfSpeech, String notes) {}
         LemmaInfo info = txTemplate.execute(status -> {
             Lemma lemma = lemmaRepository.findById(lemmaId).orElse(null);
             if (lemma == null) {
@@ -135,7 +135,7 @@ public class SentenceService {
             lemma.setSentenceStatus(SentenceStatus.GENERATING);
             lemmaRepository.save(lemma);
             String pos = lemma.getPartOfSpeech() != null ? lemma.getPartOfSpeech().name() : null;
-            return new LemmaInfo(lemma.getText(), lemma.getTranslation(), pos);
+            return new LemmaInfo(lemma.getText(), lemma.getTranslation(), pos, lemma.getNotes());
         });
 
         if (info == null) return;
@@ -146,7 +146,7 @@ public class SentenceService {
 
         try {
             result = sentenceGenerationService.generateSentencesAsync(
-                info.text(), info.translation(), info.partOfSpeech()
+                info.text(), info.translation(), info.partOfSpeech(), info.notes()
             ).get();
         } catch (Exception e) {
             logger.error("Sentence generation FAILED for lemma ID {}: {}", lemmaId, e.getMessage(), e);

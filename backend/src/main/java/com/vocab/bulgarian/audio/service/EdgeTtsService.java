@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.Normalizer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,6 +57,12 @@ public class EdgeTtsService {
      */
     @Cacheable(value = "audioFiles", key = "T(com.vocab.bulgarian.audio.util.ContentHashUtil).generateHash(#bulgarianText, #voiceName)")
     public String generateAudio(String bulgarianText, String voiceName) {
+        // Strip combining accent marks (U+0301 etc.) that confuse edge-tts.
+        // NFD decomposes accented chars, then we remove the combining marks,
+        // leaving only base Cyrillic letters for correct TTS pronunciation.
+        String cleanText = Normalizer.normalize(bulgarianText, Normalizer.Form.NFD)
+                .replaceAll("\\p{Mn}", "");
+
         // Generate content hash for filename
         String hash = ContentHashUtil.generateHash(bulgarianText, voiceName);
         String filename = hash + ".mp3";
@@ -67,7 +74,7 @@ public class EdgeTtsService {
             return filename;
         }
 
-        log.info("Generating audio for text '{}' with voice {}", bulgarianText, voiceName);
+        log.info("Generating audio for text '{}' (cleaned: '{}') with voice {}", bulgarianText, cleanText, voiceName);
 
         Path tempFile = null;
         try {
@@ -75,10 +82,11 @@ public class EdgeTtsService {
             tempFile = Files.createTempFile(Paths.get(audioStoragePath), "audio-", ".tmp");
 
             // Build edge-tts command with separate arguments (prevents shell injection)
+            // Use cleanText (accent marks stripped) for correct TTS pronunciation
             ProcessBuilder pb = new ProcessBuilder(
                 "edge-tts",
                 "--voice", voiceName,
-                "--text", bulgarianText,
+                "--text", cleanText,
                 "--write-media", tempFile.toString()
             );
 

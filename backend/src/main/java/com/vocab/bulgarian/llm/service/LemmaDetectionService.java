@@ -86,6 +86,13 @@ public class LemmaDetectionService {
             For nouns, the lemma is the singular indefinite form.
             For adjectives, the lemma is the masculine singular indefinite form.
 
+            IMPORTANT: Users of this app enter vocabulary in lemma form (1st person singular for verbs).
+            If the input word is ALREADY a valid 1st person singular present tense verb, prefer the VERB
+            interpretation over any noun/adjective homograph. For example:
+            - "пера" → VERB (I wash/launder), NOT noun plural of перо (feather)
+            - "карам" → VERB (I drive), NOT a noun form
+            Only choose the non-verb interpretation if it is clearly not a verb form.
+
             CRITICAL for verbs: preserve the exact aspect (вид) of the input word.
             Bulgarian has imperfective (несвършен) and perfective (свършен) verb pairs — they are different lemmas.
             Examples:

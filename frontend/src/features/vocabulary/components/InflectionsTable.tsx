@@ -104,21 +104,50 @@ function NounGrid({ inflections }: { inflections: InflectionDTO[] }) {
 
 type VerbTense = 'present' | 'past.aor' | 'past.imperf';
 
+/**
+ * Splits a grammatical tag into normalised parts.
+ * Handles both dot-separated ("1sg.past.aor") and comma-separated
+ * ("aorist, first-person, indicative, singular") formats from different data sources.
+ */
+function splitTag(tag: string): string[] {
+  if (tag.includes(',')) {
+    return tag.split(',').map((p) => p.trim().toLowerCase());
+  }
+  return tag.toLowerCase().split('.');
+}
+
 function getVerbTense(tag: string): VerbTense | 'imperative' | null {
-  const parts = tag.toLowerCase().split('.');
+  const parts = splitTag(tag);
   if (parts.includes('imperative') || parts.includes('imp')) return 'imperative';
+  // Check for participle — these are not conjugated tenses, skip them
+  if (parts.includes('participle')) return null;
   const hasPast = parts.includes('past');
   if (hasPast && (parts.includes('aor') || parts.includes('aorist'))) return 'past.aor';
   if (hasPast && (parts.includes('imperf') || parts.includes('imperfect'))) return 'past.imperf';
   if (parts.includes('pres') || parts.includes('present')) return 'present';
+  // Comma-format: "aorist, first-person, indicative, singular" (no "past" keyword)
+  if (parts.includes('aorist') && parts.includes('indicative')) return 'past.aor';
+  if (parts.includes('imperfect') && parts.includes('indicative')) return 'past.imperf';
   return null;
 }
 
 function getPersonNumber(tag: string): string | null {
-  const parts = tag.toLowerCase().split('.');
+  const parts = splitTag(tag);
+  // Dot-separated format: "1sg", "2pl", etc.
   for (const part of parts) {
     if (/^[123](sg|pl)$/.test(part)) return part;
   }
+  // Comma-separated format: "first-person", "singular", etc.
+  let person: string | null = null;
+  let number: string | null = null;
+  for (const part of parts) {
+    if (part === 'first-person') person = '1';
+    else if (part === 'second-person') person = '2';
+    else if (part === 'third-person') person = '3';
+    else if (part === 'singular') number = 'sg';
+    else if (part === 'plural') number = 'pl';
+  }
+  if (person && number) return `${person}${number}`;
   return null;
 }
 
